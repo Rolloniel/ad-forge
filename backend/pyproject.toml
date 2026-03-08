@@ -1,0 +1,18 @@
+[project]
+name = "adforge-backend"
+version = "0.1.0"
+description = "AdForge backend — AI-powered ad creative generation"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.30",
+    "httpx>=0.28",
+    "pydantic-settings>=2.7",
+    "python-multipart>=0.0.20",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
