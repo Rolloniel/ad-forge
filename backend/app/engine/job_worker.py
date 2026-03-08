@@ -32,15 +32,18 @@ async def execute_job(job: Job, steps: list[JobStep], session: AsyncSession) -> 
         await session.commit()
         return
 
-    step_order = {sd.name: i for i, sd in enumerate(pipeline.steps)}
+    # Build step order and handler lookup from PipelineDefinition
+    step_order = {name: i for i, (name, _) in enumerate(pipeline.steps)}
+    step_funcs = {name: func for name, func in pipeline.steps}
+
     sorted_steps = sorted(steps, key=lambda s: step_order.get(s.step_name, 999))
-    step_funcs = {sd.name: sd.func for sd in pipeline.steps}
 
     job.status = JobStatus.running
     job.started_at = datetime.now(timezone.utc)
     await session.commit()
 
-    prev_output: dict = job.config or {}
+    prev_outputs: dict[str, dict] = {}
+    config = job.config or {}
 
     for step in sorted_steps:
         step_func = step_funcs.get(step.step_name)
@@ -56,15 +59,20 @@ async def execute_job(job: Job, steps: list[JobStep], session: AsyncSession) -> 
 
         step.status = StepStatus.running
         step.started_at = datetime.now(timezone.utc)
-        step.input = prev_output
+        step.input = config
         await session.commit()
 
         try:
-            result = await step_func(prev_output, job.config or {})
+            result = await step_func(
+                job_id=job.id,
+                config=config,
+                prev_outputs=prev_outputs,
+                session=session,
+            )
             step.status = StepStatus.completed
             step.output = result
             step.completed_at = datetime.now(timezone.utc)
-            prev_output = result
+            prev_outputs[step.step_name] = result
             output_preview = str(result)[:200] if result else None
             await notify_step_event(
                 session, str(job.id), step.step_name, "completed", output_preview

@@ -32,6 +32,9 @@ adforge-seed = "app.seed:main"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

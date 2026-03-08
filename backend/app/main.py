@@ -11,6 +11,7 @@ from app.routes.jobs import router as jobs_router
 from app.routes.deployment import router as deployment_router
 from app.routes.outputs import router as outputs_router
 from app.routes.performance import router as performance_router
+import app.pipelines  # noqa: F401  — trigger pipeline registration
 
 
 @asynccontextmanager

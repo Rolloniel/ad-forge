@@ -54,7 +54,7 @@ class BrandCreate(BaseModel):
     name: str
     voice: str | None = None
     visual_guidelines: str | None = None
-    offers: dict | None = None
+    offers: list | dict | None = None
     products: list[ProductIn] | None = None
     audiences: list[AudienceIn] | None = None
 
@@ -63,7 +63,7 @@ class BrandUpdate(BaseModel):
     name: str | None = None
     voice: str | None = None
     visual_guidelines: str | None = None
-    offers: dict | None = None
+    offers: list | dict | None = None
     products: list[ProductIn] | None = None
     audiences: list[AudienceIn] | None = None
 
@@ -73,7 +73,7 @@ class BrandOut(BaseModel):
     name: str
     voice: str | None = None
     visual_guidelines: str | None = None
-    offers: dict | None = None
+    offers: list | dict | None = None
     products: list[ProductOut] = []
     audiences: list[AudienceOut] = []
 

@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from app.integrations.openai_client import generate_structured_json
+from app.integrations.openai_client import OpenAIClient
 
 DEFAULT_ANGLES = [
     "before_after_transformation",
@@ -78,10 +78,15 @@ async def generate_copy_matrix(ctx: dict[str, Any]) -> dict[str, Any]:
             f"Return JSON with key 'variations' containing an array of objects."
         )
 
-        result = await generate_structured_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            response_schema=COPY_VARIATION_SCHEMA,
+        client = OpenAIClient()
+        result = await client.structured_output(
+            system=system_prompt,
+            user=user_prompt,
+            json_schema={
+                "name": "copy_variations",
+                "strict": True,
+                "schema": COPY_VARIATION_SCHEMA,
+            },
         )
 
         copy_variations.append({
@@ -358,80 +363,45 @@ async def generate_deployment_payloads(ctx: dict[str, Any]) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Pipeline registration
+# Pipeline registration — wrap ctx-style functions to standard signature
 # ---------------------------------------------------------------------------
 
-PIPELINE = {
-    "name": "ad_copy",
-    "display_name": "Ad Copy & Deployment Engine",
-    "description": (
-        "Generate structured ad copy variations and mock deployment "
-        "payloads for Meta and TikTok Ads."
-    ),
-    "steps": [
-        {
-            "name": "generate_copy_matrix",
-            "fn": generate_copy_matrix,
-            "type": "fan_out",
-            "description": (
-                "Generate ad copy variations per creative angle via OpenAI"
-            ),
-        },
-        {
-            "name": "build_testing_matrix",
-            "fn": build_testing_matrix,
-            "type": "linear",
-            "depends_on": ["generate_copy_matrix"],
-            "description": (
-                "Combine angles x copy variants x audiences into "
-                "testing matrix"
-            ),
-        },
-        {
-            "name": "generate_deployment_payloads",
-            "fn": generate_deployment_payloads,
-            "type": "linear",
-            "depends_on": ["build_testing_matrix"],
-            "description": (
-                "Create mock Meta and TikTok Ads API payloads"
-            ),
-        },
-    ],
-    "config_schema": {
-        "type": "object",
-        "properties": {
-            "product_id": {
-                "type": "string",
-                "description": "UUID of the product to generate copy for",
-            },
-            "angles": {
-                "type": "array",
-                "items": {"type": "string"},
-                "description": "Creative angles (defaults to 5 standard angles)",
-            },
-            "variations_per_angle": {
-                "type": "integer",
-                "default": 3,
-                "description": "Number of copy variations per angle",
-            },
-            "campaign_objective": {
-                "type": "string",
-                "enum": ["CONVERSIONS", "TRAFFIC", "BRAND_AWARENESS"],
-                "default": "CONVERSIONS",
-            },
-            "daily_budget": {
-                "type": "number",
-                "default": 50.0,
-            },
-            "currency": {
-                "type": "string",
-                "default": "USD",
-            },
-            "landing_url": {
-                "type": "string",
-                "default": "https://example.com",
-            },
-        },
-        "required": ["product_id"],
-    },
-}
+from uuid import UUID  # noqa: E402
+
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
+
+from app.pipelines import PipelineDefinition, register  # noqa: E402
+
+
+def _adapt_ctx(fn, prev_step_name: str | None = None):
+    """Wrap a ``ctx``-dict step into the standard keyword-args signature."""
+
+    async def wrapper(
+        *,
+        job_id: UUID,
+        config: dict[str, Any],
+        prev_outputs: dict[str, dict[str, Any]],
+        session: AsyncSession,
+    ) -> dict[str, Any]:
+        ctx: dict[str, Any] = {
+            "job_id": str(job_id),
+            "config": config,
+            "brand": config.get("brand", {}),
+            "previous_outputs": prev_outputs,
+            "output_dir": "outputs",
+        }
+        return await fn(ctx)
+
+    return wrapper
+
+
+register(
+    PipelineDefinition(
+        name="ad_copy",
+        steps=[
+            ("generate_copy_matrix", _adapt_ctx(generate_copy_matrix)),
+            ("build_testing_matrix", _adapt_ctx(build_testing_matrix, "generate_copy_matrix")),
+            ("generate_deployment_payloads", _adapt_ctx(generate_deployment_payloads, "build_testing_matrix")),
+        ],
+    )
+)
