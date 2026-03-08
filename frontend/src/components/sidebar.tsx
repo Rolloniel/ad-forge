@@ -11,6 +11,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -49,6 +50,9 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <div className="border-t p-3">
+        <ThemeToggle />
+      </div>
     </aside>
   );
 }

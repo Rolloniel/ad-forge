@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import {
   Video,
   Image,
@@ -226,6 +227,15 @@ export default function PipelinesPage() {
     (event: JobEvent) => {
       if (event.type === "job_completed" || event.type === "job_failed") {
         setPhase("completed");
+        if (event.type === "job_completed") {
+          toast.success("Pipeline completed", {
+            description: "All steps finished successfully.",
+          });
+        } else {
+          toast.error("Pipeline failed", {
+            description: "One or more steps encountered an error.",
+          });
+        }
         setActiveJob((prev) =>
           prev
             ? {
@@ -322,8 +332,13 @@ export default function PipelinesPage() {
       setActiveJob(job);
       setPhase("running");
       resetSSE();
+      toast.success("Pipeline launched", {
+        description: `${pipeline?.label ?? selectedPipeline} is now running.`,
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to launch pipeline");
+      const message = e instanceof Error ? e.message : "Failed to launch pipeline";
+      setError(message);
+      toast.error("Launch failed", { description: message });
     } finally {
       setLaunching(false);
     }
