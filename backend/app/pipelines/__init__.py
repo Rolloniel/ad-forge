@@ -49,3 +49,4 @@ from app.pipelines import briefs as _briefs  # noqa: E402, F401
 from app.pipelines import ad_copy as _ad_copy  # noqa: E402, F401
 from app.pipelines import static_ads as _static_ads  # noqa: E402, F401
 from app.pipelines import landing_pages as _landing_pages  # noqa: E402, F401
+from app.pipelines import video_ugc as _video_ugc  # noqa: E402, F401
