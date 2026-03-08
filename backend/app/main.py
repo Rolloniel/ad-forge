@@ -1,11 +1,26 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
+from app.engine.job_worker import recover_pending_jobs, start_workers
 from app.routes.auth import router as auth_router
 from app.routes.brands import router as brands_router
+from app.routes.jobs import router as jobs_router
 from app.routes.outputs import router as outputs_router
 
-app = FastAPI(title="AdForge", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await recover_pending_jobs()
+    workers = start_workers(settings.worker_count)
+    yield
+    for task in workers:
+        task.cancel()
+
+
+app = FastAPI(title="AdForge", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +32,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(brands_router)
+app.include_router(jobs_router)
 app.include_router(outputs_router)
 
 
