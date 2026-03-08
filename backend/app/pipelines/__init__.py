@@ -47,3 +47,4 @@ def get_pipeline(name: str) -> PipelineDefinition:
 # Import pipeline modules to trigger registration
 from app.pipelines import briefs as _briefs  # noqa: E402, F401
 from app.pipelines import ad_copy as _ad_copy  # noqa: E402, F401
+from app.pipelines import static_ads as _static_ads  # noqa: E402, F401
