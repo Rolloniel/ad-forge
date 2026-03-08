@@ -12,31 +12,46 @@ export interface AuthValidateResponse {
 export interface Brand {
   id: string;
   name: string;
-  description: string;
+  voice: string | null;
+  visual_guidelines: string | null;
+  offers: Record<string, unknown>[] | null;
   products: Product[];
   audiences: Audience[];
-  voice: string;
-  visual_guidelines: Record<string, string>;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Product {
   id: string;
   brand_id: string;
   name: string;
-  description: string;
-  price: number;
-  features: string[];
-  offers: string[];
+  description: string | null;
+  price: number | null;
+  image_url: string | null;
 }
 
 export interface Audience {
   id: string;
   brand_id: string;
   name: string;
-  description: string;
-  demographics: Record<string, string>;
+  demographics: string | null;
+  interests: string | null;
+}
+
+export interface BrandCreatePayload {
+  name: string;
+  voice?: string | null;
+  visual_guidelines?: string | null;
+  offers?: Record<string, unknown>[] | null;
+  products?: Omit<Product, "id" | "brand_id">[];
+  audiences?: Omit<Audience, "id" | "brand_id">[];
+}
+
+export interface BrandUpdatePayload {
+  name?: string;
+  voice?: string | null;
+  visual_guidelines?: string | null;
+  offers?: Record<string, unknown>[] | null;
+  products?: Omit<Product, "id" | "brand_id">[];
+  audiences?: Omit<Audience, "id" | "brand_id">[];
 }
 
 // Pipelines & Jobs
