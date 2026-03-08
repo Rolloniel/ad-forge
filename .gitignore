@@ -1,2 +1,30 @@
 job-posting.txt
+
+# Environment
 .env
+.env.local
+.env*.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Gas Town (added by gt)
+.runtime/
+.claude/
+.logs/
+.beads/
