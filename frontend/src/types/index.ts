@@ -88,11 +88,18 @@ export type OutputType = "image" | "video" | "text" | "html" | "json";
 export interface Output {
   id: string;
   job_id: string;
-  pipeline: PipelineName;
-  type: OutputType;
-  filename: string;
-  metadata: Record<string, unknown>;
+  pipeline_name: string;
+  output_type: string;
+  file_path: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
+}
+
+export interface OutputListResponse {
+  items: Output[];
+  total: number;
+  page: number;
+  page_size: number;
 }
 
 // Performance
