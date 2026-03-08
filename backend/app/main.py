@@ -8,6 +8,7 @@ from app.engine.job_worker import recover_pending_jobs, start_workers
 from app.routes.auth import router as auth_router
 from app.routes.brands import router as brands_router
 from app.routes.jobs import router as jobs_router
+from app.routes.deployment import router as deployment_router
 from app.routes.outputs import router as outputs_router
 
 
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(brands_router)
 app.include_router(jobs_router)
+app.include_router(deployment_router)
 app.include_router(outputs_router)
 
 
