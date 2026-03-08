@@ -110,8 +110,53 @@ export interface Insight {
   pattern: string;
   metric: string;
   impact: number;
+  confidence: number;
   description: string;
+  source_metrics: Record<string, number>;
   created_at: string;
+}
+
+export interface CreativeAngleMetric {
+  angle: string;
+  ctr: number;
+  impressions: number;
+}
+
+export interface RoasTrend {
+  date: string;
+  roas: number;
+  spend: number;
+  revenue: number;
+}
+
+export interface TopHook {
+  hook: string;
+  ctr: number;
+  conversions: number;
+  roas: number;
+}
+
+export interface PatternComparison {
+  pattern: string;
+  winning: boolean;
+  metric: string;
+  value: number;
+  benchmark: number;
+}
+
+export interface PerformanceDashboard {
+  summary: PerformanceMetrics;
+  ctr_by_angle: CreativeAngleMetric[];
+  roas_trend: RoasTrend[];
+  top_hooks: TopHook[];
+  patterns: PatternComparison[];
+}
+
+export interface SimulateResponse {
+  projected_ctr: number;
+  projected_roas: number;
+  projected_conversions: number;
+  confidence: number;
 }
 
 // Deployment
