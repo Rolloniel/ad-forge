@@ -10,6 +10,7 @@ from app.routes.brands import router as brands_router
 from app.routes.jobs import router as jobs_router
 from app.routes.deployment import router as deployment_router
 from app.routes.outputs import router as outputs_router
+from app.routes.performance import router as performance_router
 
 
 @asynccontextmanager
@@ -36,6 +37,7 @@ app.include_router(brands_router)
 app.include_router(jobs_router)
 app.include_router(deployment_router)
 app.include_router(outputs_router)
+app.include_router(performance_router)
 
 
 @app.get("/health")

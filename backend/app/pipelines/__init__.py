@@ -50,3 +50,4 @@ from app.pipelines import ad_copy as _ad_copy  # noqa: E402, F401
 from app.pipelines import static_ads as _static_ads  # noqa: E402, F401
 from app.pipelines import landing_pages as _landing_pages  # noqa: E402, F401
 from app.pipelines import video_ugc as _video_ugc  # noqa: E402, F401
+from app.pipelines import feedback_loop as _feedback_loop  # noqa: E402, F401
