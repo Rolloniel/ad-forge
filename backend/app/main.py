@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routes.auth import router as auth_router
+from app.routes.brands import router as brands_router
+
 app = FastAPI(title="AdForge", version="0.1.0")
 
 app.add_middleware(
@@ -10,6 +13,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
+app.include_router(brands_router)
 
 
 @app.get("/health")
