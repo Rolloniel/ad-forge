@@ -415,9 +415,9 @@ export default function DeploymentPage() {
   useEffect(() => {
     let cancelled = false;
     api
-      .get<TestingMatrix>("/api/deployment/matrices")
+      .get<{ items: TestingMatrix[]; total: number }>("/api/deployment/matrices")
       .then((data) => {
-        if (!cancelled) setMatrix(data);
+        if (!cancelled && data.items.length > 0) setMatrix(data.items[0]);
       })
       .catch(() => {
         // Fall back to mock data silently

@@ -114,17 +114,25 @@ export default function PerformancePage() {
       if (brandFilter !== "all") params.set("brand_id", brandFilter);
       if (pipelineFilter !== "all") params.set("pipeline", pipelineFilter);
 
-      const [metricsData, insightsData, brandsData] = await Promise.all([
+      const [metricsData, brandsData] = await Promise.all([
         api.get<PerformanceDashboard>(
           `/api/performance/metrics?${params.toString()}`,
         ),
-        api.get<Insight[]>(`/api/insights?${params.toString()}`),
         api.get<Brand[]>("/api/brands"),
       ]);
 
       setDashboard(metricsData);
-      setInsights(insightsData);
       setBrands(brandsData);
+
+      // Insights require a specific brand — fetch separately
+      if (brandFilter !== "all") {
+        const insightsData = await api.get<Insight[]>(
+          `/api/performance/insights?${params.toString()}`,
+        );
+        setInsights(insightsData);
+      } else {
+        setInsights([]);
+      }
       setError(null);
     } catch (err) {
       setError(

@@ -16,6 +16,7 @@ from app.db import async_session, get_session
 from app.engine import job_queue
 from app.engine.event_bus import listen_job_events
 from app.engine.pipeline_engine import create_job
+from app.models.brand import Brand
 from app.models.job import Job
 
 router = APIRouter(prefix="/api", tags=["jobs"])
@@ -70,7 +71,19 @@ async def run_pipeline(
     session: AsyncSession = Depends(get_session),
 ):
     try:
-        job = await create_job(session, name, body.brand_id, body.config)
+        brand = (await session.execute(
+            select(Brand).where(Brand.id == body.brand_id)
+            .options(selectinload(Brand.products), selectinload(Brand.audiences))
+        )).scalar_one_or_none()
+        if brand is None:
+            raise HTTPException(status_code=404, detail=f"Brand {body.brand_id} not found")
+
+        config = {
+            **(body.config or {}),
+            "brand_id": str(body.brand_id),
+            "brand": {"name": brand.name, "voice": brand.voice or ""},
+        }
+        job = await create_job(session, name, body.brand_id, config)
         await session.commit()
         await job_queue.put(str(job.id))
         await session.refresh(job, ["steps"])

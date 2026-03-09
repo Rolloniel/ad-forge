@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   Video,
@@ -216,6 +217,7 @@ export default function PipelinesPage() {
     variation_count: 3,
   });
 
+  const searchParams = useSearchParams();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [activeJob, setActiveJob] = useState<Job | null>(null);
@@ -281,6 +283,16 @@ export default function PipelinesPage() {
       .then((res) => setJobs(res.items))
       .catch(() => {});
   }, []);
+
+  // Auto-select pipeline from ?launch= query param
+  useEffect(() => {
+    const launch = searchParams.get("launch");
+    if (launch && PIPELINES.some((p) => p.name === launch)) {
+      setSelectedPipeline(launch as PipelineName);
+      setPhase("configure");
+      setError(null);
+    }
+  }, [searchParams]);
 
   const pipeline = selectedPipeline
     ? PIPELINES.find((p) => p.name === selectedPipeline) ?? null
