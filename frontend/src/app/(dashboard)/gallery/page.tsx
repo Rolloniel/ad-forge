@@ -35,7 +35,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, API_BASE_URL } from "@/lib/api";
 import type { Output, OutputType, OutputListResponse } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ function OutputCard({
       <div className="flex h-40 items-center justify-center bg-muted/30">
         {output.output_type === "image" && output.file_path ? (
           <img
-            src={`/api/outputs/${output.id}/file`}
+            src={`${API_BASE_URL}/api/outputs/${output.id}/file`}
             className="h-full w-full object-cover"
             alt=""
             loading="lazy"
@@ -210,7 +210,7 @@ function TextPreview({ output }: { output: Output }) {
   const [content, setContent] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/outputs/${output.id}/file`)
+    fetch(`${API_BASE_URL}/api/outputs/${output.id}/file`)
       .then((r) => r.text())
       .then(setContent)
       .catch(() => setContent("Failed to load content"));
@@ -260,7 +260,7 @@ function PreviewContent({ output }: { output: Output }) {
   if (output.output_type === "image" && output.file_path) {
     return (
       <img
-        src={`/api/outputs/${output.id}/file`}
+        src={`${API_BASE_URL}/api/outputs/${output.id}/file`}
         className="max-h-[60vh] w-full rounded-lg object-contain"
         alt=""
       />
@@ -270,7 +270,7 @@ function PreviewContent({ output }: { output: Output }) {
   if (output.output_type === "video" && output.file_path) {
     return (
       <video
-        src={`/api/outputs/${output.id}/file`}
+        src={`${API_BASE_URL}/api/outputs/${output.id}/file`}
         controls
         className="max-h-[60vh] w-full rounded-lg"
       />
@@ -368,7 +368,7 @@ export default function GalleryPage() {
   }
 
   function downloadOne(id: string) {
-    window.open(`/api/outputs/${id}/file?download=true`, "_blank");
+    window.open(`${API_BASE_URL}/api/outputs/${id}/file?download=true`, "_blank");
   }
 
   function downloadBatch() {
