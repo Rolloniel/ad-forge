@@ -108,31 +108,34 @@ export default function PerformancePage() {
   const [simulating, setSimulating] = useState(false);
   const [simResult, setSimResult] = useState<SimulateResponse | null>(null);
 
+  useEffect(() => {
+    api.get<Brand[]>("/api/brands").then(setBrands).catch(() => {});
+  }, []);
+
   const fetchData = useCallback(async () => {
+    if (brandFilter === "all") {
+      setDashboard(null);
+      setInsights([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const params = new URLSearchParams({ range: dateRange });
-      if (brandFilter !== "all") params.set("brand_id", brandFilter);
+      params.set("brand_id", brandFilter);
       if (pipelineFilter !== "all") params.set("pipeline", pipelineFilter);
 
-      const [metricsData, brandsData] = await Promise.all([
+      const [metricsData, insightsData] = await Promise.all([
         api.get<PerformanceDashboard>(
           `/api/performance/metrics?${params.toString()}`,
         ),
-        api.get<Brand[]>("/api/brands"),
+        api.get<Insight[]>(
+          `/api/performance/insights?${params.toString()}`,
+        ),
       ]);
 
       setDashboard(metricsData);
-      setBrands(brandsData);
-
-      // Insights require a specific brand — fetch separately
-      if (brandFilter !== "all") {
-        const insightsData = await api.get<Insight[]>(
-          `/api/performance/insights?${params.toString()}`,
-        );
-        setInsights(insightsData);
-      } else {
-        setInsights([]);
-      }
+      setInsights(insightsData);
       setError(null);
     } catch (err) {
       setError(

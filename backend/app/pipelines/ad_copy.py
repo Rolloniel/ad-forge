@@ -36,10 +36,12 @@ COPY_VARIATION_SCHEMA = {
                     "cta": {"type": "string"},
                 },
                 "required": ["primary_text", "headline", "description", "cta"],
+                "additionalProperties": False,
             },
         }
     },
     "required": ["variations"],
+    "additionalProperties": False,
 }
 
 
