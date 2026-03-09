@@ -26,6 +26,9 @@ node_modules/
 
 # Gas Town (added by gt)
 .runtime/
-.claude/
+.claude/*
+# Allow skills to be tracked
+!.claude/skills/
+.claude/skills/verify-app/output/history.yaml
 .logs/
 .beads/
