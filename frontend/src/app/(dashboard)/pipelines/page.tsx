@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, API_BASE_URL } from "@/lib/api";
 import { useSSE } from "@/lib/use-sse";
 import type {
   PipelineName,
@@ -261,7 +261,7 @@ export default function PipelinesPage() {
     error: sseError,
     reset: resetSSE,
   } = useSSE({
-    url: activeJob ? `/api/jobs/${activeJob.id}/events` : "",
+    url: activeJob ? `${API_BASE_URL}/api/jobs/${activeJob.id}/events` : "",
     enabled: phase === "running" && !!activeJob,
     onEvent: handleJobEvent,
   });
