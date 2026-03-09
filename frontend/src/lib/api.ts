@@ -1,3 +1,5 @@
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -23,7 +25,7 @@ class ApiClient {
       headers.set("Authorization", `Bearer ${apiKey}`);
     }
 
-    const res = await fetch(path, { ...init, headers });
+    const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({ detail: res.statusText }));
