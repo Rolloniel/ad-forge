@@ -38,6 +38,13 @@ cd backend && alembic upgrade head
 cd frontend && npx tsc --noEmit
 ```
 
+## Deployment
+
+- **Backend Coolify UUID:** `e8cwwkoogo0osss804ks8s8w`
+- **Frontend Coolify UUID:** `vwk88w0g0s4woo4cgg44kwgs`
+- **Backend URL:** `https://api-adforge.kliuiev.com`
+- **Frontend URL:** `https://adforge.kliuiev.com`
+
 ## Code Patterns
 
 ### Backend (Python)
