@@ -1,0 +1,335 @@
+# Frontend test cases — page rendering and interactive UI checks.
+# Smoke cases verify pages load. Functional cases test interactions.
+# Used by: /verify-app smoke (smoke phase only), /verify-app full (all phases)
+
+# --- Smoke: pages render ---
+
+- id: login-renders
+  phase: smoke
+  description: "Navigate to login page, verify AdForge branding and login form"
+  steps:
+    - navigate to /login
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["AdForge", "API Key", "Sign In"]
+
+- id: dashboard-renders
+  phase: smoke
+  description: "Navigate to dashboard, verify metric cards and status indicators"
+  steps:
+    - navigate to /dashboard
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Dashboard", "Total Jobs", "Outputs Generated"]
+
+- id: brands-renders
+  phase: smoke
+  description: "Navigate to brands page, verify header and brand management UI"
+  steps:
+    - navigate to /brands
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Brands", "New Brand"]
+
+- id: pipelines-renders
+  phase: smoke
+  description: "Navigate to pipelines page, verify pipeline cards are shown"
+  steps:
+    - navigate to /pipelines
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Pipelines", "Video UGC", "Ad Copy"]
+
+- id: gallery-renders
+  phase: smoke
+  description: "Navigate to gallery page, verify filter controls and output grid"
+  steps:
+    - navigate to /gallery
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Gallery"]
+
+- id: deployment-renders
+  phase: smoke
+  description: "Navigate to deployment preview page, verify tab structure"
+  steps:
+    - navigate to /deployment
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Deployment Preview", "Campaign Structure"]
+
+- id: performance-renders
+  phase: smoke
+  description: "Navigate to performance page, verify KPI cards"
+  steps:
+    - navigate to /performance
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Performance", "Impressions", "ROAS"]
+
+# --- Functional: interactions ---
+
+- id: nav-sidebar-dashboard
+  phase: functional
+  description: "Click Dashboard in sidebar, verify navigation"
+  steps:
+    - navigate to /brands
+    - wait for page to load
+    - find and click "Dashboard" in the sidebar navigation
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Dashboard", "Total Jobs"]
+
+- id: nav-sidebar-pipelines
+  phase: functional
+  description: "Click Pipelines in sidebar, verify navigation"
+  steps:
+    - navigate to /dashboard
+    - wait for page to load
+    - find and click "Pipelines" in the sidebar navigation
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Pipelines", "Video UGC"]
+
+- id: brands-create-dialog
+  phase: functional
+  description: "Click New Brand button, verify create dialog opens"
+  steps:
+    - navigate to /brands
+    - wait for page to load
+    - find and click the "New Brand" button
+    - wait for dialog to appear
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Brand Name", "Brand Voice", "Products", "Audiences"]
+
+- id: pipelines-select-card
+  phase: functional
+  description: "Click a pipeline card, verify configuration phase loads"
+  steps:
+    - navigate to /pipelines
+    - wait for page to load
+    - find and click the "Creative Briefs" pipeline card
+    - wait for configuration form to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Select a brand", "Launch Pipeline"]
+
+- id: pipelines-brand-dropdown
+  phase: functional
+  description: "On pipeline config, verify brand dropdown has options"
+  steps:
+    - navigate to /pipelines
+    - wait for page to load
+    - click the "Creative Briefs" pipeline card
+    - wait for configuration form to load
+    - find and click the brand dropdown/select
+    - take a snapshot
+  assert:
+    snapshot_contains: ["GlowVita"]
+
+- id: gallery-filter-controls
+  phase: functional
+  description: "On gallery page, verify filter dropdowns are interactive"
+  steps:
+    - navigate to /gallery
+    - wait for page to load
+    - find the pipeline filter dropdown
+    - click it to open options
+    - take a snapshot
+  assert:
+    snapshot_contains: ["All Pipelines"]
+
+- id: dark-mode-toggle
+  phase: functional
+  description: "Toggle dark mode from sidebar, verify theme changes"
+  steps:
+    - navigate to /dashboard
+    - wait for page to load
+    - find and click the theme toggle button in the sidebar
+    - wait a moment for theme to apply
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Dashboard"]
+
+# --- Functional: additional interactions ---
+
+- id: root-redirect
+  phase: functional
+  description: "Navigate to root /, verify redirect to dashboard"
+  steps:
+    - navigate to /
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Dashboard", "Total Jobs"]
+
+- id: login-invalid-key
+  phase: functional
+  description: "Submit invalid API key on login, verify error message"
+  steps:
+    - navigate to /login
+    - fill API Key input with "wrong-key-12345"
+    - click the Sign In button
+    - wait for error to appear
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Invalid API key"]
+
+- id: dashboard-quick-launch
+  phase: functional
+  description: "Click a Quick Launch link on dashboard, verify pipeline config loads"
+  steps:
+    - navigate to /dashboard
+    - wait for page to load
+    - find and click the "Briefs" quick launch link
+    - wait for page to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Creative Briefs", "Select a brand", "Launch Pipeline"]
+
+- id: brands-card-edit-dialog
+  phase: functional
+  description: "Click a brand card to open edit dialog with populated data"
+  steps:
+    - navigate to /brands
+    - wait for page to load
+    - find and click the GlowVita brand card
+    - wait for dialog to appear
+    - take a snapshot
+  assert:
+    snapshot_contains: ["GlowVita", "Brand Voice", "Products", "Audiences"]
+
+- id: brands-dialog-add-product
+  phase: functional
+  description: "In New Brand dialog, click Add Product, verify product fields appear"
+  steps:
+    - navigate to /brands
+    - wait for page to load
+    - click the "New Brand" button
+    - wait for dialog to appear
+    - find and click the "Add Product" button
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Product Name", "Description"]
+
+- id: brands-dialog-add-audience
+  phase: functional
+  description: "In New Brand dialog, click Add Audience, verify audience fields appear"
+  steps:
+    - navigate to /brands
+    - wait for page to load
+    - click the "New Brand" button
+    - wait for dialog to appear
+    - find and click the "Add Audience" button
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Audience Name", "Demographics"]
+
+- id: pipelines-back-button
+  phase: functional
+  description: "Select a pipeline, then click Back to Pipelines to return"
+  steps:
+    - navigate to /pipelines
+    - wait for page to load
+    - click the "Creative Briefs" pipeline card
+    - wait for config form to load
+    - find and click "Back to Pipelines" button
+    - wait for page to update
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Video UGC", "Static Ads", "Creative Briefs", "Ad Copy"]
+
+- id: pipelines-launch-enabled
+  phase: functional
+  description: "Select a brand in pipeline config, verify Launch Pipeline button enables"
+  steps:
+    - navigate to /pipelines
+    - wait for page to load
+    - click the "Creative Briefs" pipeline card
+    - wait for config form to load
+    - click the brand dropdown
+    - select "GlowVita" from the options
+    - wait for selection to apply
+    - take a snapshot
+  assert:
+    snapshot_contains: ["GlowVita", "Launch Pipeline"]
+
+- id: deployment-tab-testing-matrix
+  phase: functional
+  description: "Switch to Testing Matrix tab on deployment page"
+  steps:
+    - navigate to /deployment
+    - wait for page to load
+    - find and click the "Testing Matrix" tab button
+    - wait for content to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Testing Matrix", "Angle", "CTR"]
+
+- id: deployment-tab-json-payloads
+  phase: functional
+  description: "Switch to JSON Payloads tab on deployment page"
+  steps:
+    - navigate to /deployment
+    - wait for page to load
+    - find and click the "JSON Payloads" tab button
+    - wait for content to load
+    - take a snapshot
+  assert:
+    snapshot_contains: ["JSON Payloads", "Copy"]
+
+- id: deployment-json-platform-switch
+  phase: functional
+  description: "On JSON Payloads tab, switch between Meta and TikTok platforms"
+  steps:
+    - navigate to /deployment
+    - wait for page to load
+    - click the "JSON Payloads" tab button
+    - wait for content to load
+    - find and click the "TikTok Ads" platform button
+    - take a snapshot
+  assert:
+    snapshot_contains: ["TikTok"]
+
+- id: performance-brand-filter
+  phase: functional
+  description: "Open brand filter dropdown on performance page, verify options"
+  steps:
+    - navigate to /performance
+    - wait for page to load
+    - find and click the brand filter dropdown (shows 'All Brands')
+    - take a snapshot
+  assert:
+    snapshot_contains: ["GlowVita"]
+
+- id: performance-date-range-filter
+  phase: functional
+  description: "Open date range filter on performance page, verify options"
+  steps:
+    - navigate to /performance
+    - wait for page to load
+    - find and click the date range dropdown (shows 'Last 30 days')
+    - take a snapshot
+  assert:
+    snapshot_contains: ["Last 7 days", "Last 90 days"]
+
+- id: gallery-output-type-filter
+  phase: functional
+  description: "Open output type filter dropdown on gallery page"
+  steps:
+    - navigate to /gallery
+    - wait for page to load
+    - find and click the output type filter dropdown (shows 'All Types')
+    - take a snapshot
+  assert:
+    snapshot_contains: ["All Types"]
