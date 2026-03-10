@@ -94,7 +94,10 @@ class FalClient:
             "status_url",
             f"{BASE_URL}/{model}/requests/{request_id}/status",
         )
-        result_url = f"https://queue.fal.run/{model}/requests/{request_id}"
+        result_url = submit_data.get(
+            "response_url",
+            f"{BASE_URL}/{model}/requests/{request_id}",
+        )
 
         delay = POLL_INITIAL_DELAY
         while True:
@@ -106,7 +109,9 @@ class FalClient:
                 status = resp.json()
 
             if status.get("status") == "COMPLETED":
-                return await self._get_result(result_url)
+                # Prefer response_url from status response if available
+                final_url = status.get("response_url", result_url)
+                return await self._get_result(final_url)
             if status.get("status") == "FAILED":
                 raise RuntimeError(
                     f"FAL job {request_id} failed: {status.get('error')}"
