@@ -7,8 +7,9 @@ AI-powered ad creative generation platform. FastAPI backend + Next.js frontend m
 - `backend/app/main.py` — FastAPI app entry point, lifespan (worker startup/shutdown), CORS
 - `backend/app/config.py` — `Settings` via pydantic-settings, all env vars
 - `backend/app/db.py` — Async SQLAlchemy engine, `async_sessionmaker`, `get_session` dependency
-- `backend/app/models/` — SQLAlchemy 2.0 declarative models (Brand, Product, Audience, Job, JobStep, Output, PerformanceMetric, Event, Insight)
-- `backend/app/routes/` — FastAPI routers: auth, brands, jobs, outputs
+- `backend/app/models/` — SQLAlchemy 2.0 declarative models (User, ApiKey, Brand, Product, Audience, Job, JobStep, Output, PerformanceMetric, Event, Insight)
+- `backend/app/routes/` — FastAPI routers: auth, brands, jobs, outputs, performance, deployment
+- `backend/app/cli.py` — User management CLI (create-user, list-users, revoke-key, delete-user)
 - `backend/app/engine/` — Pipeline engine (`pipeline_engine.py`), job worker pool (`job_worker.py`), PostgreSQL LISTEN/NOTIFY event bus (`event_bus.py`)
 - `backend/app/pipelines/` — Pipeline definitions with step handlers (briefs, ad_copy)
 - `backend/app/integrations/` — Async API clients: OpenAI, FAL.ai, HeyGen, ElevenLabs
@@ -36,6 +37,13 @@ cd backend && alembic upgrade head
 
 # Type checking (frontend)
 cd frontend && npx tsc --noEmit
+
+# User management CLI
+cd backend && python -m app.cli create-user "Demo Client" --expires-days 14
+cd backend && python -m app.cli create-user "Admin" --admin --expires-days 365
+cd backend && python -m app.cli list-users
+cd backend && python -m app.cli revoke-key <key_prefix>
+cd backend && python -m app.cli delete-user <user_id>
 ```
 
 ## Deployment
@@ -88,7 +96,7 @@ async def step_handler(
 
 Steps receive keyword-only args. `prev_outputs` maps step names to their return dicts (output chaining). Return value becomes input for next step.
 
-**Auth:** Bearer token via `require_auth` dependency. Per-user API keys stored in database, managed via CLI (`python -m app.cli create-user`).
+**Auth:** Bearer token via `require_auth` dependency. Returns `User` object. Per-user API keys stored as SHA-256 hashes in `api_keys` table. Keys have `adf_` prefix and configurable expiry (default 14 days for demo, 365 for admin). All routes are scoped by user ownership through `Brand.user_id` — non-admin users only see their own data. Managed via CLI (`python -m app.cli`).
 
 ### Frontend (TypeScript/React)
 
@@ -107,11 +115,13 @@ Steps receive keyword-only args. `prev_outputs` maps step names to their return 
 
 ## Important Files
 
+- `backend/app/models/user.py` — `User` and `ApiKey` models
 - `backend/app/models/base.py` — `Base` declarative base, `TimestampMixin`
 - `backend/app/engine/pipeline_engine.py` — `create_job()`, pipeline registry
 - `backend/app/engine/job_worker.py` — `execute_job()`, `worker_loop()`, `claim_job()` (FOR UPDATE SKIP LOCKED)
 - `backend/app/engine/event_bus.py` — `notify_step_event()` (pg_notify), `listen_job_events()` (asyncpg listener)
 - `backend/app/pipelines/__init__.py` — `PipelineDefinition`, `REGISTRY`, `register()`
 - `frontend/src/types/index.ts` — All TypeScript interfaces for API models
-- `frontend/src/lib/api.ts` — Centralized fetch wrapper with auth
+- `frontend/src/lib/api.ts` — Centralized fetch wrapper with auth (401 auto-redirect)
+- `frontend/src/middleware.ts` — Next.js middleware for route protection (redirects to /login)
 - `docs/plans/2026-03-08-adforge-poc-design.md` — Full design document
