@@ -60,10 +60,13 @@ SAMPLE_BRIEF = {
 
 
 @pytest.fixture
-async def brand_with_insights(session: AsyncSession) -> Brand:
+async def brand_with_insights(session: AsyncSession, seed_user) -> Brand:
+    from tests.conftest import SEED_USER_ID
+
     brand = Brand(
         id=BRAND_ID,
         name="TestBrand",
+        user_id=SEED_USER_ID,
         voice="Friendly and professional",
         visual_guidelines="Minimalist design",
         offers=[{"name": "10% Off", "code": "SAVE10"}],

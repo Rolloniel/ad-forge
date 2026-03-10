@@ -16,15 +16,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import selectinload
 
 from app.config import settings
 from app.models.brand import Audience, Brand, Product
 from app.models.user import ApiKey, User
-from app.seed.glowvita import (
-    BRAND_ID as GLOWVITA_BRAND_ID,
-)
 
 
 def _generate_key() -> tuple[str, str, str]:
@@ -35,7 +32,8 @@ def _generate_key() -> tuple[str, str, str]:
     return raw_key, key_hash, key_prefix
 
 
-async def _get_session() -> tuple[async_sessionmaker, any]:
+async def _get_session() -> tuple[async_sessionmaker, AsyncEngine]:
+    """Create a new engine and session factory."""
     engine = create_async_engine(settings.database_url, echo=False)
     factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     return factory, engine
