@@ -89,7 +89,7 @@ def upgrade() -> None:
     }])
 
     # Assign all existing brands to admin
-    op.execute(sa.text(f"UPDATE brands SET user_id = '{admin_id}'"))
+    op.execute(sa.text("UPDATE brands SET user_id = :uid").bindparams(uid=str(admin_id)))
 
     # 5. Make user_id NOT NULL
     op.alter_column("brands", "user_id", nullable=False)
