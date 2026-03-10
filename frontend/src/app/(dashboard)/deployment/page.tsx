@@ -354,7 +354,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <Button variant="ghost" size="sm" onClick={handleCopy}>
       {copied ? (
-        <Check className="h-3.5 w-3.5 text-emerald-500" />
+        <Check className="h-3.5 w-3.5 text-[var(--color-status-completed)]" />
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
@@ -676,9 +676,9 @@ export default function DeploymentPage() {
                               <span
                                 className={cn(
                                   m.ctr >= 2.5
-                                    ? "text-emerald-600"
+                                    ? "text-[var(--color-status-completed)]"
                                     : m.ctr < 1.5
-                                      ? "text-red-500"
+                                      ? "text-[var(--color-status-failed)]"
                                       : "",
                                 )}
                               >
@@ -692,9 +692,9 @@ export default function DeploymentPage() {
                               <span
                                 className={cn(
                                   m.roas >= 3.5
-                                    ? "text-emerald-600 font-medium"
+                                    ? "text-[var(--color-status-completed)] font-medium"
                                     : m.roas < 2.5
-                                      ? "text-red-500"
+                                      ? "text-[var(--color-status-failed)]"
                                       : "",
                                 )}
                               >
