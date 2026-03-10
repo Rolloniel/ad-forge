@@ -149,13 +149,26 @@ async def get_job(
 
 
 @router.get("/jobs/{job_id}/events")
-async def job_events_sse(job_id: uuid.UUID, authorization: str = Header(...)):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Authorization header must use Bearer scheme")
-    token = authorization.removeprefix("Bearer ")
+async def job_events_sse(
+    job_id: uuid.UUID,
+    token: str | None = Query(None),
+    authorization: str | None = Header(None),
+):
+    # Extract token from header or query param
+    raw_token = None
+    if authorization and authorization.startswith("Bearer "):
+        raw_token = authorization.removeprefix("Bearer ")
+    elif token:
+        raw_token = token
+
+    if not raw_token:
+        raise HTTPException(
+            status_code=401,
+            detail="Provide Authorization header or token query parameter",
+        )
 
     async with async_session() as session:
-        user = await _lookup_user_by_key(session, token)
+        user = await _lookup_user_by_key(session, raw_token)
         if user is None:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
 

@@ -119,6 +119,11 @@ const PIPELINES: {
 // Helpers
 // ---------------------------------------------------------------------------
 
+function getApiKey(): string {
+  const match = document.cookie.match(/adforge_api_key=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
 type Phase = "select" | "configure" | "running" | "completed";
 
 interface PipelineConfig {
@@ -225,7 +230,9 @@ export default function PipelinesPage() {
     error: sseError,
     reset: resetSSE,
   } = useSSE({
-    url: activeJob ? `${API_BASE_URL}/api/jobs/${activeJob.id}/events` : "",
+    url: activeJob
+      ? `${API_BASE_URL}/api/jobs/${activeJob.id}/events?token=${encodeURIComponent(getApiKey())}`
+      : "",
     enabled: phase === "running" && !!activeJob,
     onEvent: handleJobEvent,
   });
