@@ -28,6 +28,8 @@ import type {
   JobEvent,
   JobStatus,
   Brand,
+  Output,
+  OutputListResponse,
 } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -168,6 +170,64 @@ function StatusBadge({ status }: { status: JobStatus }) {
 }
 
 // ---------------------------------------------------------------------------
+// Output preview component
+// ---------------------------------------------------------------------------
+
+function OutputPreview({ output }: { output: Output }) {
+  const fileUrl = `${API_BASE_URL}/api/outputs/${output.id}/file`;
+
+  if (output.output_type === "image" && output.file_path) {
+    return (
+      <img
+        src={fileUrl}
+        className="max-h-48 w-full object-contain bg-muted/30"
+        alt=""
+        loading="lazy"
+      />
+    );
+  }
+
+  if (output.output_type === "video" && output.file_path) {
+    return (
+      <video
+        src={fileUrl}
+        controls
+        className="max-h-48 w-full bg-muted/30"
+      />
+    );
+  }
+
+  if (output.output_type === "html" && output.file_path) {
+    return (
+      <div className="relative">
+        <iframe
+          src={fileUrl}
+          className="h-48 w-full border"
+          sandbox=""
+          title="Landing Page Preview"
+        />
+        <button
+          type="button"
+          className="absolute bottom-2 right-2 bg-background/80 px-2 py-1 text-xs hover:bg-background"
+          onClick={() => window.open(fileUrl, "_blank")}
+        >
+          Open Full Page
+        </button>
+      </div>
+    );
+  }
+
+  // Text, JSON, and other types — show truncated preview
+  return (
+    <div className="h-24 overflow-hidden bg-muted/30 p-3">
+      <p className="font-mono text-xs text-muted-foreground line-clamp-4">
+        {output.file_path?.split("/").pop() ?? "output"} — {output.output_type}
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -190,6 +250,8 @@ export default function PipelinesPage() {
   const [activeJob, setActiveJob] = useState<Job | null>(null);
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jobOutputs, setJobOutputs] = useState<Output[]>([]);
+  const [outputsLoading, setOutputsLoading] = useState(false);
 
   // SSE handler — stable via useCallback so useSSE ref always has latest
   const handleJobEvent = useCallback(
@@ -262,6 +324,23 @@ export default function PipelinesPage() {
       setError(null);
     }
   }, [searchParams]);
+
+  // Fetch outputs when pipeline completes
+  useEffect(() => {
+    if (phase !== "completed" || !activeJob) return;
+    setOutputsLoading(true);
+    api
+      .get<OutputListResponse>(
+        `/api/outputs?page=1&page_size=50&pipeline_name=${activeJob.pipeline}`,
+      )
+      .then((res) => {
+        // Filter to just this job's outputs
+        const jobOuts = res.items.filter((o) => o.job_id === activeJob.id);
+        setJobOutputs(jobOuts);
+      })
+      .catch(() => setJobOutputs([]))
+      .finally(() => setOutputsLoading(false));
+  }, [phase, activeJob]);
 
   const pipeline = selectedPipeline
     ? PIPELINES.find((p) => p.name === selectedPipeline) ?? null
@@ -637,6 +716,60 @@ export default function PipelinesPage() {
                 >
                   Re-run with Same Config
                 </Button>
+              </div>
+            )}
+
+            {/* Output preview */}
+            {phase === "completed" && activeJob?.status === "completed" && (
+              <div className="mt-6 space-y-4">
+                <h2 className="text-section-header">Generated Outputs</h2>
+                {outputsLoading ? (
+                  <div className="flex items-center gap-2 py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Loading outputs...</span>
+                  </div>
+                ) : jobOutputs.length === 0 ? (
+                  <p className="py-4 text-sm text-muted-foreground">
+                    No outputs generated. Check the Gallery page for results.
+                  </p>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {jobOutputs.map((output) => (
+                      <div
+                        key={output.id}
+                        className="border border-border bg-card p-4 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <Badge variant="secondary">
+                            {output.output_type.toUpperCase()}
+                          </Badge>
+                          <button
+                            type="button"
+                            className="text-label text-muted-foreground hover:text-foreground"
+                            onClick={() =>
+                              window.open(
+                                `${API_BASE_URL}/api/outputs/${output.id}/file?download=true`,
+                                "_blank",
+                              )
+                            }
+                          >
+                            DOWNLOAD
+                          </button>
+                        </div>
+                        <OutputPreview output={output} />
+                        {output.metadata && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {Object.entries(output.metadata).slice(0, 3).map(([k, v]) => (
+                              <span key={k} className="text-xs text-muted-foreground font-mono">
+                                {k}: {String(v)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
