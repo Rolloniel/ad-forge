@@ -1,37 +1,37 @@
-import { Skeleton } from "@/components/ui/skeleton";
-
 export default function PipelinesLoading() {
   return (
-    <div className="flex h-full gap-6">
-      <div className="min-w-0 flex-1">
-        <div className="mb-6">
-          <Skeleton className="h-8 w-36" />
-          <Skeleton className="mt-2 h-4 w-72" />
+    <div className="animate-fade-in flex h-full gap-6">
+      <div className="min-w-0 flex-1 space-y-6">
+        <div className="h-10 w-36">
+          <span className="animate-cursor-blink font-mono text-muted-foreground">
+            _
+          </span>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-lg border p-6 space-y-3">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <Skeleton className="h-5 w-24" />
+            <div key={i} className="border border-border p-6 space-y-3">
+              <span className="text-label text-muted-foreground">
+                Pipeline
+              </span>
+              <div>
+                <span className="animate-cursor-blink font-mono text-muted-foreground">
+                  _
+                </span>
               </div>
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-16" />
+              <div className="h-3" />
+              <div className="h-3" />
             </div>
           ))}
         </div>
       </div>
-      <aside className="hidden w-72 shrink-0 lg:block">
-        <Skeleton className="mb-3 h-4 w-24" />
+      <aside className="hidden w-72 shrink-0 space-y-4 lg:block">
+        <span className="text-label text-muted-foreground">Recent Jobs</span>
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-lg border p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-5 w-16" />
-              </div>
-              <Skeleton className="h-3 w-32" />
+            <div key={i} className="border border-border p-3">
+              <span className="animate-cursor-blink font-mono text-xs text-muted-foreground">
+                _
+              </span>
             </div>
           ))}
         </div>
