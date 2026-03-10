@@ -5,10 +5,6 @@ import {
   Loader2,
   Copy,
   Check,
-  ChevronRight,
-  Megaphone,
-  LayoutGrid,
-  FileJson,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,12 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import type { DeploymentPreview, TestingMatrix } from "@/types";
@@ -252,7 +242,7 @@ function highlightJson(json: string): React.ReactNode[] {
     if (match[1]) {
       // Key
       nodes.push(
-        <span key={nodes.length} className="text-sky-400">
+        <span key={nodes.length} className="text-foreground">
           {match[1]}
         </span>,
       );
@@ -260,28 +250,28 @@ function highlightJson(json: string): React.ReactNode[] {
     } else if (match[2]) {
       // String value
       nodes.push(
-        <span key={nodes.length} className="text-emerald-400">
+        <span key={nodes.length} className="text-muted-foreground">
           {match[2]}
         </span>,
       );
     } else if (match[3]) {
       // Number
       nodes.push(
-        <span key={nodes.length} className="text-amber-400">
+        <span key={nodes.length} className="text-accent">
           {match[3]}
         </span>,
       );
     } else if (match[4]) {
       // Boolean/null
       nodes.push(
-        <span key={nodes.length} className="text-violet-400">
+        <span key={nodes.length} className="text-accent">
           {match[4]}
         </span>,
       );
     } else if (match[5]) {
       // Punctuation
       nodes.push(
-        <span key={nodes.length} className="text-zinc-500">
+        <span key={nodes.length} className="text-muted-foreground/50">
           {match[5]}
         </span>,
       );
@@ -307,10 +297,9 @@ function PlatformBadge({ platform }: { platform: "meta" | "tiktok" }) {
     <Badge
       variant="outline"
       className={cn(
-        "text-xs",
         platform === "meta"
-          ? "border-blue-600/30 bg-blue-600/10 text-blue-700"
-          : "border-pink-600/30 bg-pink-600/10 text-pink-700",
+          ? "border-blue-600"
+          : "border-pink-600",
       )}
     >
       {platform === "meta" ? "Meta Ads" : "TikTok Ads"}
@@ -329,11 +318,6 @@ function CampaignTreeNode({
   children?: React.ReactNode;
   detail?: string;
 }) {
-  const colors = {
-    campaign: "text-primary",
-    ad_set: "text-amber-600",
-    ad: "text-emerald-600",
-  };
   const typeLabels = {
     campaign: "Campaign",
     ad_set: "Ad Set",
@@ -343,8 +327,7 @@ function CampaignTreeNode({
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <ChevronRight className={cn("h-3.5 w-3.5", colors[type])} />
-        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+        <Badge variant="outline" className="text-[10px]">
           {typeLabels[type]}
         </Badge>
         <span className="text-sm font-medium">{label}</span>
@@ -352,7 +335,9 @@ function CampaignTreeNode({
           <span className="text-xs text-muted-foreground">{detail}</span>
         )}
       </div>
-      {children && <div className="ml-6 border-l pl-4">{children}</div>}
+      {children && (
+        <div className="ml-4 border-l border-border pl-4">{children}</div>
+      )}
     </div>
   );
 }
@@ -384,10 +369,10 @@ function JsonViewer({ data, title }: { data: unknown; title: string }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">{title}</span>
+        <span className="text-label">{title}</span>
         <CopyButton text={json} />
       </div>
-      <pre className="max-h-80 overflow-auto rounded-lg border bg-zinc-950 p-4 text-xs leading-relaxed">
+      <pre className="max-h-80 overflow-auto border border-border bg-[#F7F5F2] p-4 font-mono text-xs leading-relaxed dark:bg-[#1A1816]">
         <code>{highlightJson(json)}</code>
       </pre>
     </div>
@@ -449,10 +434,10 @@ export default function DeploymentPage() {
     }
   }
 
-  const tabs: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { key: "campaigns", label: "Campaign Structure", icon: Megaphone },
-    { key: "matrix", label: "Testing Matrix", icon: LayoutGrid },
-    { key: "payloads", label: "JSON Payloads", icon: FileJson },
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "campaigns", label: "Structure" },
+    { key: "matrix", label: "Matrix" },
+    { key: "payloads", label: "Payloads" },
   ];
 
   const selectedPreview = previews.find((p) => p.platform === selectedPayload);
@@ -461,12 +446,7 @@ export default function DeploymentPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Deployment Preview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Mock campaign structures, testing matrices, and deployment payloads.
-          </p>
-        </div>
+        <h1 className="text-page-title">DEPLOYMENT</h1>
         <Button onClick={generatePreview} disabled={generating}>
           {generating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -482,20 +462,19 @@ export default function DeploymentPage() {
       )}
 
       {/* Tab navigation */}
-      <div className="flex gap-1 rounded-lg border bg-muted/50 p-1">
+      <div className="flex gap-6 border-b border-border">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
             className={cn(
-              "flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+              "pb-2 font-mono text-xs uppercase tracking-wider transition-colors",
               activeTab === tab.key
-                ? "bg-background text-foreground shadow-sm"
+                ? "border-b-2 border-accent text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <tab.icon className="h-4 w-4" />
             {tab.label}
           </button>
         ))}
@@ -519,132 +498,112 @@ export default function DeploymentPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Accordion type="multiple" defaultValue={["campaign"]}>
-                  <AccordionItem value="campaign">
-                    <AccordionTrigger className="py-3">
-                      <div className="flex items-center gap-2">
-                        <Megaphone className="h-4 w-4 text-primary" />
-                        <span>Campaign Details</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-4">
-                        {/* Campaign level */}
-                        <CampaignTreeNode
-                          label={(preview.campaign as Record<string, string>).name}
-                          type="campaign"
-                          detail={`Objective: ${(preview.campaign as Record<string, string>).objective || (preview.campaign as Record<string, string>).objective_type}`}
-                        >
-                          {/* Ad Sets */}
-                          <div className="space-y-3 py-2">
-                            {preview.ad_sets.map((adSet) => {
-                              const adSetId = (adSet as Record<string, string>).id;
-                              const adSetName = (adSet as Record<string, string>).name;
-                              const adsInSet = preview.ads.filter(
-                                (ad) =>
-                                  (ad as Record<string, string>).adset_id === adSetId ||
-                                  (ad as Record<string, string>).adgroup_id === adSetId,
-                              );
-                              return (
+                <div className="space-y-4">
+                  {/* Campaign level */}
+                  <CampaignTreeNode
+                    label={(preview.campaign as Record<string, string>).name}
+                    type="campaign"
+                    detail={`Objective: ${(preview.campaign as Record<string, string>).objective || (preview.campaign as Record<string, string>).objective_type}`}
+                  >
+                    {/* Ad Sets */}
+                    <div className="space-y-3 py-2">
+                      {preview.ad_sets.map((adSet) => {
+                        const adSetId = (adSet as Record<string, string>).id;
+                        const adSetName = (adSet as Record<string, string>).name;
+                        const adsInSet = preview.ads.filter(
+                          (ad) =>
+                            (ad as Record<string, string>).adset_id === adSetId ||
+                            (ad as Record<string, string>).adgroup_id === adSetId,
+                        );
+                        return (
+                          <CampaignTreeNode
+                            key={adSetId}
+                            label={adSetName}
+                            type="ad_set"
+                            detail={`${adsInSet.length} ad${adsInSet.length !== 1 ? "s" : ""}`}
+                          >
+                            <div className="space-y-2 py-1">
+                              {adsInSet.map((ad) => (
                                 <CampaignTreeNode
-                                  key={adSetId}
-                                  label={adSetName}
-                                  type="ad_set"
-                                  detail={`${adsInSet.length} ad${adsInSet.length !== 1 ? "s" : ""}`}
-                                >
-                                  <div className="space-y-2 py-1">
-                                    {adsInSet.map((ad) => (
-                                      <CampaignTreeNode
-                                        key={(ad as Record<string, string>).id}
-                                        label={(ad as Record<string, string>).name}
-                                        type="ad"
-                                        detail={
-                                          ((ad as Record<string, Record<string, string>>).creative)
-                                            ?.type
-                                        }
-                                      />
-                                    ))}
-                                  </div>
-                                </CampaignTreeNode>
-                              );
-                            })}
-                          </div>
-                        </CampaignTreeNode>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
+                                  key={(ad as Record<string, string>).id}
+                                  label={(ad as Record<string, string>).name}
+                                  type="ad"
+                                  detail={
+                                    ((ad as Record<string, Record<string, string>>).creative)
+                                      ?.type
+                                  }
+                                />
+                              ))}
+                            </div>
+                          </CampaignTreeNode>
+                        );
+                      })}
+                    </div>
+                  </CampaignTreeNode>
 
-                  <AccordionItem value="targeting">
-                    <AccordionTrigger className="py-3">
-                      <div className="flex items-center gap-2">
-                        <LayoutGrid className="h-4 w-4 text-amber-600" />
-                        <span>Targeting Summary</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-3">
-                        {preview.ad_sets.map((adSet) => {
-                          const s = adSet as Record<string, unknown>;
-                          const name = String(s.name ?? "");
-                          const targeting = s.targeting as
-                            | Record<string, unknown>
-                            | undefined;
-                          return (
-                            <div key={String(s.id)} className="space-y-1">
-                              <p className="text-sm font-medium">{name}</p>
-                              {targeting ? (
-                                <div className="flex flex-wrap gap-1.5">
-                                  {targeting.age_min != null && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      Ages {String(targeting.age_min)}-{String(targeting.age_max)}
-                                    </Badge>
-                                  )}
-                                  {(targeting.geo_locations as Record<string, string[]> | undefined)
-                                    ?.countries?.map((c) => (
-                                      <Badge key={c} variant="secondary" className="text-xs">
-                                        {c}
-                                      </Badge>
-                                    ))}
-                                  {(targeting.interests as { name: string }[] | undefined)?.map(
-                                    (i) => (
-                                      <Badge key={i.name} variant="outline" className="text-xs">
-                                        {i.name}
-                                      </Badge>
-                                    ),
-                                  )}
-                                  {(targeting.custom_audiences as { name: string }[] | undefined)?.map(
-                                    (a) => (
-                                      <Badge key={a.name} variant="outline" className="text-xs">
-                                        {a.name}
-                                      </Badge>
-                                    ),
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="flex flex-wrap gap-1.5">
-                                  {(s.age_groups as string[] | undefined)?.map(
-                                    (g) => (
-                                      <Badge key={g} variant="secondary" className="text-xs">
-                                        {g.replace("AGE_", "").replace("_", "-")}
-                                      </Badge>
-                                    ),
-                                  )}
-                                  {(s.audience_ids as string[] | undefined)?.map(
-                                    (id) => (
-                                      <Badge key={id} variant="outline" className="text-xs">
-                                        {id}
-                                      </Badge>
-                                    ),
-                                  )}
-                                </div>
+                  {/* Targeting Summary */}
+                  <div className="space-y-3 border-t border-border pt-4">
+                    <span className="text-label text-muted-foreground">Targeting</span>
+                    {preview.ad_sets.map((adSet) => {
+                      const s = adSet as Record<string, unknown>;
+                      const name = String(s.name ?? "");
+                      const targeting = s.targeting as
+                        | Record<string, unknown>
+                        | undefined;
+                      return (
+                        <div key={String(s.id)} className="space-y-1">
+                          <p className="text-sm font-medium">{name}</p>
+                          {targeting ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {targeting.age_min != null && (
+                                <Badge variant="secondary">
+                                  Ages {String(targeting.age_min)}-{String(targeting.age_max)}
+                                </Badge>
+                              )}
+                              {(targeting.geo_locations as Record<string, string[]> | undefined)
+                                ?.countries?.map((c) => (
+                                  <Badge key={c} variant="secondary">
+                                    {c}
+                                  </Badge>
+                                ))}
+                              {(targeting.interests as { name: string }[] | undefined)?.map(
+                                (i) => (
+                                  <Badge key={i.name} variant="outline">
+                                    {i.name}
+                                  </Badge>
+                                ),
+                              )}
+                              {(targeting.custom_audiences as { name: string }[] | undefined)?.map(
+                                (a) => (
+                                  <Badge key={a.name} variant="outline">
+                                    {a.name}
+                                  </Badge>
+                                ),
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                              {(s.age_groups as string[] | undefined)?.map(
+                                (g) => (
+                                  <Badge key={g} variant="secondary">
+                                    {g.replace("AGE_", "").replace("_", "-")}
+                                  </Badge>
+                                ),
+                              )}
+                              {(s.audience_ids as string[] | undefined)?.map(
+                                (id) => (
+                                  <Badge key={id} variant="outline">
+                                    {id}
+                                  </Badge>
+                                ),
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
