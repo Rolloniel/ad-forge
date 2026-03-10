@@ -174,7 +174,7 @@ function StatusBadge({ status }: { status: JobStatus }) {
 // ---------------------------------------------------------------------------
 
 function OutputPreview({ output }: { output: Output }) {
-  const fileUrl = `${API_BASE_URL}/api/outputs/${output.id}/file`;
+  const fileUrl = `${API_BASE_URL}/api/outputs/${output.id}/file?token=${encodeURIComponent(getApiKey())}`;
 
   if (output.output_type === "image" && output.file_path) {
     return (
@@ -748,7 +748,7 @@ export default function PipelinesPage() {
                             className="text-label text-muted-foreground hover:text-foreground"
                             onClick={() =>
                               window.open(
-                                `${API_BASE_URL}/api/outputs/${output.id}/file?download=true`,
+                                `${API_BASE_URL}/api/outputs/${output.id}/file?download=true&token=${encodeURIComponent(getApiKey())}`,
                                 "_blank",
                               )
                             }

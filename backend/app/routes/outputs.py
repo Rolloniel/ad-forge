@@ -6,19 +6,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db import get_session
+from app.db import async_session, get_session
 from app.models.brand import Brand
 from app.models.job import Job
 from app.models.output import Output
 from app.models.user import User
-from app.routes.auth import require_auth
+from app.routes.auth import _lookup_user_by_key, require_auth
 
 router = APIRouter(prefix="/api/outputs", tags=["outputs"])
 
@@ -128,17 +128,38 @@ async def get_output(
 async def get_output_file(
     output_id: uuid.UUID,
     download: bool = Query(False),
-    session: AsyncSession = Depends(get_session),
-    user: User = Depends(require_auth),
+    token: str | None = Query(None),
+    authorization: str | None = Header(None),
 ) -> FileResponse:
-    """Serve the actual generated file from local disk."""
-    query = select(Output).where(Output.id == output_id)
-    if not user.is_admin:
-        query = query.join(Job, Output.job_id == Job.id).join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
-    result = await session.execute(query)
-    output = result.scalar_one_or_none()
-    if output is None:
-        raise HTTPException(status_code=404, detail="Output not found")
+    """Serve the actual generated file from local disk.
+
+    Accepts auth via Authorization header or token query parameter
+    (needed for <img src>, <video src>, <iframe src> which can't send headers).
+    """
+    raw_token = None
+    if authorization and authorization.startswith("Bearer "):
+        raw_token = authorization.removeprefix("Bearer ")
+    elif token:
+        raw_token = token
+
+    if not raw_token:
+        raise HTTPException(
+            status_code=401,
+            detail="Provide Authorization header or token query parameter",
+        )
+
+    async with async_session() as session:
+        user = await _lookup_user_by_key(session, raw_token)
+        if user is None:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        query = select(Output).where(Output.id == output_id)
+        if not user.is_admin:
+            query = query.join(Job, Output.job_id == Job.id).join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+        result = await session.execute(query)
+        output = result.scalar_one_or_none()
+        if output is None:
+            raise HTTPException(status_code=404, detail="Output not found")
 
     if not output.file_path:
         raise HTTPException(status_code=404, detail="Output has no associated file")
