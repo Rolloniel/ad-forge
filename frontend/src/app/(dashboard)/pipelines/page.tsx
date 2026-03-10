@@ -34,11 +34,16 @@ import type {
 // Pipeline definitions
 // ---------------------------------------------------------------------------
 
+interface PipelineStep {
+  key: string;   // backend step_name — matches SSE event.step
+  label: string; // human-readable display name
+}
+
 const PIPELINES: {
   name: PipelineName;
   label: string;
   description: string;
-  steps: string[];
+  steps: PipelineStep[];
 }[] = [
   {
     name: "video_ugc",
@@ -46,11 +51,10 @@ const PIPELINES: {
     description:
       "Generate authentic UGC-style video ads with AI avatars and voiceovers",
     steps: [
-      "Script Generation",
-      "Voice Synthesis",
-      "Avatar Rendering",
-      "Video Compositing",
-      "Quality Check",
+      { key: "generate_script", label: "Script Generation" },
+      { key: "generate_voiceover", label: "Voice Synthesis" },
+      { key: "generate_video", label: "Video Rendering" },
+      { key: "composite", label: "Compositing" },
     ],
   },
   {
@@ -59,11 +63,10 @@ const PIPELINES: {
     description:
       "Create high-converting static ad creatives with copy and visuals",
     steps: [
-      "Copy Generation",
-      "Image Generation",
-      "Layout Compositing",
-      "Variation Matrix",
-      "Quality Check",
+      { key: "generate_angle_matrix", label: "Angle Discovery" },
+      { key: "generate_ad_copy", label: "Copy Generation" },
+      { key: "generate_base_images", label: "Image Generation" },
+      { key: "compose_final_ads", label: "Compositing" },
     ],
   },
   {
@@ -71,10 +74,9 @@ const PIPELINES: {
     label: "Creative Briefs",
     description: "AI-generated creative briefs and advertising concepts",
     steps: [
-      "Market Research",
-      "Angle Discovery",
-      "Brief Writing",
-      "Review & Scoring",
+      { key: "analyze_product", label: "Product Analysis" },
+      { key: "generate_brief", label: "Brief Generation" },
+      { key: "render_brief", label: "Brief Rendering" },
     ],
   },
   {
@@ -82,10 +84,10 @@ const PIPELINES: {
     label: "Landing Pages",
     description: "Generate optimized landing pages for ad campaigns",
     steps: [
-      "Copy Generation",
-      "Design Generation",
-      "HTML Build",
-      "Performance Prediction",
+      { key: "generate_page_strategy", label: "Page Strategy" },
+      { key: "generate_sections", label: "Section Content" },
+      { key: "generate_variations", label: "A/B Variations" },
+      { key: "render_page", label: "HTML Rendering" },
     ],
   },
   {
@@ -94,11 +96,9 @@ const PIPELINES: {
     description:
       "Generate compelling ad copy variations for multiple platforms",
     steps: [
-      "Audience Analysis",
-      "Hook Generation",
-      "Body Copy",
-      "CTA Variations",
-      "A/B Scoring",
+      { key: "generate_copy_matrix", label: "Copy Matrix" },
+      { key: "build_testing_matrix", label: "Testing Matrix" },
+      { key: "generate_deployment_payloads", label: "Deployment Payloads" },
     ],
   },
   {
@@ -107,10 +107,10 @@ const PIPELINES: {
     description:
       "Analyze performance data and generate optimization suggestions",
     steps: [
-      "Data Collection",
-      "Pattern Analysis",
-      "Insight Generation",
-      "Optimization Suggestions",
+      { key: "simulate_performance", label: "Performance Simulation" },
+      { key: "analyze_results", label: "Results Analysis" },
+      { key: "generate_insights", label: "Insight Generation" },
+      { key: "update_context", label: "Context Update" },
     ],
   },
 ];
@@ -135,12 +135,12 @@ interface PipelineConfig {
 }
 
 function deriveStepStatuses(
-  stepNames: string[],
+  steps: PipelineStep[],
   events: JobEvent[],
 ): Record<string, JobStatus> {
   const statuses: Record<string, JobStatus> = {};
-  for (const name of stepNames) {
-    statuses[name] = "pending";
+  for (const step of steps) {
+    statuses[step.key] = "pending";
   }
   for (const event of events) {
     if (!event.step) continue;
@@ -515,11 +515,11 @@ export default function PipelinesPage() {
               <div className="flex flex-wrap items-center gap-2">
                 {pipeline.steps.map((step, i) => (
                   <span
-                    key={step}
+                    key={step.key}
                     className="text-label flex items-center gap-1.5 text-muted-foreground"
                   >
                     {i > 0 && <span className="text-border">&rarr;</span>}
-                    {step}
+                    {step.label}
                   </span>
                 ))}
               </div>
@@ -562,10 +562,10 @@ export default function PipelinesPage() {
             {/* Step-by-step visualization */}
             <div className="border border-border bg-card p-6">
               <div className="space-y-0">
-                {pipeline.steps.map((stepName, i) => {
-                  const status = stepStatuses[stepName] ?? "pending";
+                {pipeline.steps.map((step, i) => {
+                  const status = stepStatuses[step.key] ?? "pending";
                   return (
-                    <div key={stepName} className="flex items-start gap-4">
+                    <div key={step.key} className="flex items-start gap-4">
                       {/* Timeline connector */}
                       <div className="flex flex-col items-center">
                         <div
@@ -604,7 +604,7 @@ export default function PipelinesPage() {
                             status === "pending" && "text-muted-foreground/40",
                           )}
                         >
-                          {stepName}
+                          {step.label}
                         </p>
                         {status === "running" && (
                           <p className="mt-0.5 text-xs text-muted-foreground">
