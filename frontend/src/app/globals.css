@@ -1,34 +1,40 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.145 0 0);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.145 0 0);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.145 0 0);
-  --color-primary: oklch(0.205 0 0);
-  --color-primary-foreground: oklch(0.985 0 0);
-  --color-secondary: oklch(0.965 0 0);
-  --color-secondary-foreground: oklch(0.205 0 0);
-  --color-muted: oklch(0.965 0 0);
-  --color-muted-foreground: oklch(0.556 0 0);
-  --color-accent: oklch(0.965 0 0);
-  --color-accent-foreground: oklch(0.205 0 0);
-  --color-destructive: oklch(0.577 0.245 27.325);
-  --color-destructive-foreground: oklch(0.577 0.245 27.325);
-  --color-border: oklch(0.922 0 0);
-  --color-input: oklch(0.922 0 0);
-  --color-ring: oklch(0.708 0 0);
-  --color-sidebar: oklch(0.985 0 0);
-  --color-sidebar-foreground: oklch(0.145 0 0);
-  --color-sidebar-primary: oklch(0.205 0 0);
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.965 0 0);
-  --color-sidebar-accent-foreground: oklch(0.205 0 0);
-  --color-sidebar-border: oklch(0.922 0 0);
-  --color-sidebar-ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  --font-display: "Darker Grotesque", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --color-background: #F2F0ED;
+  --color-foreground: #1A1A1A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A1A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1A1A;
+  --color-primary: #1A1A1A;
+  --color-primary-foreground: #F2F0ED;
+  --color-secondary: #E8E5E1;
+  --color-secondary-foreground: #1A1A1A;
+  --color-muted: #E8E5E1;
+  --color-muted-foreground: #6B6560;
+  --color-accent: #B04A32;
+  --color-accent-foreground: #FFFFFF;
+  --color-destructive: #8B3A3A;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #D4D0CB;
+  --color-input: #D4D0CB;
+  --color-ring: #B04A32;
+  --color-sidebar: #1A1A1A;
+  --color-sidebar-foreground: #9B9590;
+  --color-sidebar-primary: #F2F0ED;
+  --color-sidebar-primary-foreground: #1A1A1A;
+  --color-sidebar-accent: #B04A32;
+  --color-sidebar-accent-foreground: #F2F0ED;
+  --color-sidebar-border: #333333;
+  --color-sidebar-ring: #B04A32;
+  --color-status-completed: #4A6B52;
+  --color-status-failed: #8B3A3A;
+  --color-status-running: #B04A32;
+  --color-status-pending: #9B9590;
+  --radius: 0;
 }
 
 @layer base {
@@ -47,31 +53,129 @@
 }
 
 .dark {
-  --color-background: oklch(0.145 0 0);
-  --color-foreground: oklch(0.985 0 0);
-  --color-card: oklch(0.145 0 0);
-  --color-card-foreground: oklch(0.985 0 0);
-  --color-popover: oklch(0.145 0 0);
-  --color-popover-foreground: oklch(0.985 0 0);
-  --color-primary: oklch(0.985 0 0);
-  --color-primary-foreground: oklch(0.205 0 0);
-  --color-secondary: oklch(0.269 0 0);
-  --color-secondary-foreground: oklch(0.985 0 0);
-  --color-muted: oklch(0.269 0 0);
-  --color-muted-foreground: oklch(0.708 0 0);
-  --color-accent: oklch(0.269 0 0);
-  --color-accent-foreground: oklch(0.985 0 0);
-  --color-destructive: oklch(0.396 0.141 25.723);
-  --color-destructive-foreground: oklch(0.637 0.237 25.331);
-  --color-border: oklch(0.269 0 0);
-  --color-input: oklch(0.269 0 0);
-  --color-ring: oklch(0.439 0 0);
-  --color-sidebar: oklch(0.205 0 0);
-  --color-sidebar-foreground: oklch(0.985 0 0);
-  --color-sidebar-primary: oklch(0.488 0.243 264.376);
-  --color-sidebar-primary-foreground: oklch(0.985 0 0);
-  --color-sidebar-accent: oklch(0.269 0 0);
-  --color-sidebar-accent-foreground: oklch(0.985 0 0);
-  --color-sidebar-border: oklch(0.269 0 0);
-  --color-sidebar-ring: oklch(0.439 0 0);
+  --color-background: #1A1A1A;
+  --color-foreground: #F2F0ED;
+  --color-card: #2A2725;
+  --color-card-foreground: #F2F0ED;
+  --color-popover: #2A2725;
+  --color-popover-foreground: #F2F0ED;
+  --color-primary: #F2F0ED;
+  --color-primary-foreground: #1A1A1A;
+  --color-secondary: #332F2C;
+  --color-secondary-foreground: #F2F0ED;
+  --color-muted: #332F2C;
+  --color-muted-foreground: #9B9590;
+  --color-accent: #B04A32;
+  --color-accent-foreground: #FFFFFF;
+  --color-destructive: #8B3A3A;
+  --color-destructive-foreground: #F2F0ED;
+  --color-border: #3A3735;
+  --color-input: #3A3735;
+  --color-ring: #B04A32;
+  --color-sidebar: #111111;
+  --color-sidebar-foreground: #9B9590;
+  --color-sidebar-primary: #F2F0ED;
+  --color-sidebar-primary-foreground: #1A1A1A;
+  --color-sidebar-accent: #B04A32;
+  --color-sidebar-accent-foreground: #F2F0ED;
+  --color-sidebar-border: #2A2725;
+  --color-sidebar-ring: #B04A32;
+}
+
+/* Brutalist utility classes */
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .text-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .text-page-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+  .text-section-header {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .text-metric {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1;
+  }
+}
+
+/* Brutalist animations */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-left-color: var(--color-accent); }
+  50% { border-left-color: transparent; }
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in 200ms ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(n+7) { animation-delay: 300ms; }
+
+/* Brutalist card hover — hard-edge offset shadow */
+.brutalist-hover {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.brutalist-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--color-foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-cursor-blink,
+  .animate-fade-in,
+  .animate-pulse-border,
+  .stagger-children > * {
+    animation: none;
+    opacity: 1;
+  }
 }

@@ -25,7 +25,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-[rgba(26,26,26,0.6)] md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -50,10 +50,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="ml-3 text-lg font-semibold">AdForge</span>
+          <span className="ml-3 font-display text-lg font-black uppercase">
+            AdForge
+          </span>
         </div>
 
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto px-4 py-6 md:px-12 md:py-8">
+          <div className="mx-auto max-w-[1200px]">{children}</div>
+        </main>
       </div>
     </div>
   );

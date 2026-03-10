@@ -14,7 +14,7 @@ export function ThemeToggle() {
   ];
 
   return (
-    <div className="flex items-center gap-1 rounded-md border bg-muted/50 p-0.5">
+    <div className="flex items-center gap-2">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -22,13 +22,13 @@ export function ThemeToggle() {
           onClick={() => setTheme(opt.value)}
           title={opt.label}
           className={cn(
-            "rounded-sm p-1.5 transition-colors",
+            "p-1.5 transition-colors",
             theme === opt.value
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
+              ? "text-sidebar-primary"
+              : "text-sidebar-foreground hover:text-sidebar-primary",
           )}
         >
-          <opt.icon className="h-3.5 w-3.5" />
+          <opt.icon className="h-3 w-3" />
         </button>
       ))}
     </div>

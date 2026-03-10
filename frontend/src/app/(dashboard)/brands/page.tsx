@@ -4,21 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Pencil,
-  Package,
-  Users,
-  Megaphone,
   Loader2,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -273,12 +262,7 @@ export default function BrandsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Brands</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage brands, products, audiences, and brand voice.
-          </p>
-        </div>
+        <h1 className="text-page-title">BRANDS</h1>
         <Button onClick={openCreate}>
           <Plus className="h-4 w-4" />
           New Brand
@@ -297,65 +281,47 @@ export default function BrandsPage() {
 
       {/* Empty state */}
       {!loading && brands.length === 0 && !error && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Megaphone className="h-10 w-10 text-muted-foreground/40" />
-            <p className="mt-3 text-sm text-muted-foreground">
-              No brands yet. Create your first brand to get started.
-            </p>
-            <Button className="mt-4" onClick={openCreate}>
-              <Plus className="h-4 w-4" />
-              New Brand
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-16">
+          <p className="text-label text-muted-foreground">NO BRANDS YET</p>
+          <Button className="mt-4" onClick={openCreate}>
+            <Plus className="h-4 w-4" />
+            New Brand
+          </Button>
+        </div>
       )}
 
       {/* Brand cards */}
       {!loading && brands.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="stagger-children grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {brands.map((brand) => (
-            <Card
+            <div
               key={brand.id}
-              className="cursor-pointer transition-colors hover:border-primary/50 hover:shadow-md"
+              className="brutalist-hover cursor-pointer border border-border bg-card p-5"
               onClick={() => openEdit(brand)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{brand.name}</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEdit(brand);
-                    }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                {brand.voice && (
-                  <CardDescription className="line-clamp-2">
-                    {brand.voice}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" className="gap-1">
-                    <Package className="h-3 w-3" />
-                    {brand.products.length}{" "}
-                    {brand.products.length === 1 ? "product" : "products"}
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1">
-                    <Users className="h-3 w-3" />
-                    {brand.audiences.length}{" "}
-                    {brand.audiences.length === 1 ? "audience" : "audiences"}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="flex items-start justify-between">
+                <h3 className="text-section-header font-display">{brand.name}</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEdit(brand);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              {brand.voice && (
+                <p className="mt-1 font-mono text-[13px] text-muted-foreground line-clamp-2">
+                  {brand.voice}
+                </p>
+              )}
+              <p className="text-label text-muted-foreground mt-3">
+                {brand.products.length} {brand.products.length === 1 ? "PRODUCT" : "PRODUCTS"} &middot; {brand.audiences.length} {brand.audiences.length === 1 ? "AUDIENCE" : "AUDIENCES"}
+              </p>
+            </div>
           ))}
         </div>
       )}
@@ -451,68 +417,66 @@ export default function BrandsPage() {
               )}
 
               {form.products.map((product, idx) => (
-                <Card key={idx}>
-                  <CardContent className="space-y-3 pt-4">
-                    <div className="flex items-start justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Product {idx + 1}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => removeProduct(idx)}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
+                <div key={idx} className="border-b border-border py-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <span className="text-label text-muted-foreground">
+                      PRODUCT {idx + 1}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => removeProduct(idx)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2 space-y-1">
+                      <Label className="text-xs">Name</Label>
+                      <Input
+                        placeholder="Product name"
+                        value={product.name}
+                        onChange={(e) =>
+                          updateProduct(idx, "name", e.target.value)
+                        }
+                      />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="col-span-2 space-y-1">
-                        <Label className="text-xs">Name</Label>
-                        <Input
-                          placeholder="Product name"
-                          value={product.name}
-                          onChange={(e) =>
-                            updateProduct(idx, "name", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="col-span-2 space-y-1">
-                        <Label className="text-xs">Description</Label>
-                        <Input
-                          placeholder="Brief description"
-                          value={product.description}
-                          onChange={(e) =>
-                            updateProduct(idx, "description", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Price ($)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={product.price}
-                          onChange={(e) =>
-                            updateProduct(idx, "price", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Image URL</Label>
-                        <Input
-                          placeholder="https://..."
-                          value={product.image_url}
-                          onChange={(e) =>
-                            updateProduct(idx, "image_url", e.target.value)
-                          }
-                        />
-                      </div>
+                    <div className="col-span-2 space-y-1">
+                      <Label className="text-xs">Description</Label>
+                      <Input
+                        placeholder="Brief description"
+                        value={product.description}
+                        onChange={(e) =>
+                          updateProduct(idx, "description", e.target.value)
+                        }
+                      />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Price ($)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={product.price}
+                        onChange={(e) =>
+                          updateProduct(idx, "price", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Image URL</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={product.image_url}
+                        onChange={(e) =>
+                          updateProduct(idx, "image_url", e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
 
@@ -535,55 +499,53 @@ export default function BrandsPage() {
               )}
 
               {form.audiences.map((audience, idx) => (
-                <Card key={idx}>
-                  <CardContent className="space-y-3 pt-4">
-                    <div className="flex items-start justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        Audience {idx + 1}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => removeAudience(idx)}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
+                <div key={idx} className="border-b border-border py-4 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <span className="text-label text-muted-foreground">
+                      AUDIENCE {idx + 1}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => removeAudience(idx)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Name</Label>
+                      <Input
+                        placeholder="Audience segment name"
+                        value={audience.name}
+                        onChange={(e) =>
+                          updateAudience(idx, "name", e.target.value)
+                        }
+                      />
                     </div>
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Name</Label>
-                        <Input
-                          placeholder="Audience segment name"
-                          value={audience.name}
-                          onChange={(e) =>
-                            updateAudience(idx, "name", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Demographics</Label>
-                        <Input
-                          placeholder="Age, gender, income, location..."
-                          value={audience.demographics}
-                          onChange={(e) =>
-                            updateAudience(idx, "demographics", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Interests</Label>
-                        <Input
-                          placeholder="Hobbies, preferences, lifestyle..."
-                          value={audience.interests}
-                          onChange={(e) =>
-                            updateAudience(idx, "interests", e.target.value)
-                          }
-                        />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Demographics</Label>
+                      <Input
+                        placeholder="Age, gender, income, location..."
+                        value={audience.demographics}
+                        onChange={(e) =>
+                          updateAudience(idx, "demographics", e.target.value)
+                        }
+                      />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Interests</Label>
+                      <Input
+                        placeholder="Hobbies, preferences, lifestyle..."
+                        value={audience.interests}
+                        onChange={(e) =>
+                          updateAudience(idx, "interests", e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
