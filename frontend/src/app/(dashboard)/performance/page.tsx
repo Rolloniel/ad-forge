@@ -2,19 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  BarChart3,
-  TrendingUp,
-  Eye,
-  MousePointerClick,
-  Target,
-  DollarSign,
   Loader2,
   Lightbulb,
-  Zap,
   ArrowUpRight,
   ArrowDownRight,
   Trophy,
   PlayCircle,
+  Zap,
 } from "lucide-react";
 import {
   BarChart,
@@ -176,46 +170,16 @@ export default function PerformancePage() {
   };
 
   // -------------------------------------------------------------------------
-  // KPI cards config
+  // KPI config
   // -------------------------------------------------------------------------
   const summary = dashboard?.summary;
-  const kpiCards = [
-    {
-      title: "Impressions",
-      value: summary ? fmtNum(summary.impressions) : "—",
-      icon: Eye,
-      description: "Total ad views",
-    },
-    {
-      title: "Clicks",
-      value: summary ? fmtNum(summary.clicks) : "—",
-      icon: MousePointerClick,
-      description: "Total interactions",
-    },
-    {
-      title: "CTR",
-      value: summary ? fmtPct(summary.ctr) : "—",
-      icon: Target,
-      description: "Click-through rate",
-    },
-    {
-      title: "Conversions",
-      value: summary ? fmtNum(summary.conversions) : "—",
-      icon: TrendingUp,
-      description: "Completed actions",
-    },
-    {
-      title: "CPA",
-      value: summary ? fmtCurrency(summary.cpa) : "—",
-      icon: DollarSign,
-      description: "Cost per acquisition",
-    },
-    {
-      title: "ROAS",
-      value: summary ? fmtRoas(summary.roas) : "—",
-      icon: BarChart3,
-      description: "Return on ad spend",
-    },
+  const kpis = [
+    { title: "Impressions", value: summary ? fmtNum(summary.impressions) : "—" },
+    { title: "Clicks", value: summary ? fmtNum(summary.clicks) : "—" },
+    { title: "CTR", value: summary ? fmtPct(summary.ctr) : "—" },
+    { title: "Conversions", value: summary ? fmtNum(summary.conversions) : "—" },
+    { title: "CPA", value: summary ? fmtCurrency(summary.cpa) : "—" },
+    { title: "ROAS", value: summary ? fmtRoas(summary.roas) : "—" },
   ];
 
   // -------------------------------------------------------------------------
@@ -223,15 +187,10 @@ export default function PerformancePage() {
   // -------------------------------------------------------------------------
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in space-y-6">
       {/* Page header + filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Performance &amp; Insights</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Simulated performance dashboards and optimization insights.
-          </p>
-        </div>
+        <h1 className="text-page-title">PERFORMANCE</h1>
         <div className="flex flex-wrap gap-2">
           <Select value={brandFilter} onValueChange={setBrandFilter}>
             <SelectTrigger size="sm">
@@ -278,25 +237,20 @@ export default function PerformancePage() {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {/* KPI metric cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {kpiCards.map((card) => (
-          <Card key={card.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                {card.title}
-              </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {loading ? "—" : card.value}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {card.description}
-              </p>
-            </CardContent>
-          </Card>
+      {/* KPI metric row — flat, no cards */}
+      <div className="flex flex-wrap items-center gap-y-4">
+        {kpis.map((kpi, idx) => (
+          <div
+            key={kpi.title}
+            className={`flex-1 min-w-[120px] px-6 first:pl-0 last:pr-0 ${idx < kpis.length - 1 ? "border-r border-border" : ""}`}
+          >
+            <span className="text-label font-mono text-muted-foreground">
+              {kpi.title}
+            </span>
+            <div className="text-metric mt-1">
+              {loading ? "—" : kpi.value}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -318,7 +272,7 @@ export default function PerformancePage() {
               {dashboard && dashboard.ctr_by_angle.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={dashboard.ctr_by_angle}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <CartesianGrid stroke="#D4D0CB" strokeDasharray="3 3" />
                     <XAxis
                       dataKey="angle"
                       tick={{ fontSize: 12 }}
@@ -337,14 +291,13 @@ export default function PerformancePage() {
                       contentStyle={{
                         backgroundColor: "var(--color-card)",
                         border: "1px solid var(--color-border)",
-                        borderRadius: "0.5rem",
                         fontSize: "0.875rem",
                       }}
                     />
                     <Bar
                       dataKey="ctr"
-                      fill="var(--color-primary)"
-                      radius={[4, 4, 0, 0]}
+                      fill="#B04A32"
+                      radius={[0, 0, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -365,7 +318,7 @@ export default function PerformancePage() {
               {dashboard && dashboard.roas_trend.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={dashboard.roas_trend}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <CartesianGrid stroke="#D4D0CB" strokeDasharray="3 3" />
                     <XAxis
                       dataKey="date"
                       tick={{ fontSize: 12 }}
@@ -384,7 +337,6 @@ export default function PerformancePage() {
                       contentStyle={{
                         backgroundColor: "var(--color-card)",
                         border: "1px solid var(--color-border)",
-                        borderRadius: "0.5rem",
                         fontSize: "0.875rem",
                       }}
                     />
@@ -392,7 +344,7 @@ export default function PerformancePage() {
                     <Line
                       type="monotone"
                       dataKey="roas"
-                      stroke="var(--color-primary)"
+                      stroke="var(--color-foreground)"
                       strokeWidth={2}
                       dot={{ r: 3 }}
                       activeDot={{ r: 5 }}
@@ -400,7 +352,7 @@ export default function PerformancePage() {
                     <Line
                       type="monotone"
                       dataKey="spend"
-                      stroke="#ef4444"
+                      stroke="#8B3A3A"
                       strokeWidth={1.5}
                       strokeDasharray="4 4"
                       dot={false}
@@ -408,7 +360,7 @@ export default function PerformancePage() {
                     <Line
                       type="monotone"
                       dataKey="revenue"
-                      stroke="#22c55e"
+                      stroke="#4A6B52"
                       strokeWidth={1.5}
                       strokeDasharray="4 4"
                       dot={false}
@@ -442,9 +394,9 @@ export default function PerformancePage() {
                   {dashboard.top_hooks.map((hook, idx) => (
                     <div
                       key={hook.hook}
-                      className="flex items-center gap-3 rounded-lg border p-3"
+                      className="flex items-center gap-3 border border-border p-3"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-primary-foreground text-xs font-bold">
                         {idx + 1}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -488,17 +440,17 @@ export default function PerformancePage() {
                     return (
                       <div
                         key={p.pattern}
-                        className="flex items-center justify-between rounded-lg border p-3"
+                        className="flex items-center justify-between border border-border p-3"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             {p.winning ? (
-                              <Badge className="bg-emerald-600/15 text-emerald-700 border-emerald-600/20 hover:bg-emerald-600/15">
+                              <Badge className="border-[var(--color-status-completed)] text-[var(--color-status-completed)]">
                                 <ArrowUpRight className="mr-0.5 h-3 w-3" />
                                 Winner
                               </Badge>
                             ) : (
-                              <Badge className="bg-red-600/15 text-red-700 border-red-600/20 hover:bg-red-600/15">
+                              <Badge className="border-[var(--color-status-failed)] text-[var(--color-status-failed)]">
                                 <ArrowDownRight className="mr-0.5 h-3 w-3" />
                                 Loser
                               </Badge>
@@ -513,7 +465,7 @@ export default function PerformancePage() {
                           </p>
                         </div>
                         <span
-                          className={`text-sm font-semibold ${p.winning ? "text-emerald-600" : "text-red-600"}`}
+                          className={`text-sm font-semibold ${p.winning ? "text-[var(--color-status-completed)]" : "text-[var(--color-status-failed)]"}`}
                         >
                           {p.winning ? "+" : ""}
                           {diffPct}%
@@ -542,7 +494,7 @@ export default function PerformancePage() {
             </CardTitle>
             <div className="flex items-center gap-2">
               {simResult && (
-                <div className="flex items-center gap-3 rounded-md bg-primary/5 px-3 py-1.5 text-xs">
+                <div className="flex items-center gap-3 border border-border px-3 py-1.5 text-xs">
                   <span>
                     Proj. CTR: <strong>{fmtPct(simResult.projected_ctr)}</strong>
                   </span>
@@ -576,7 +528,7 @@ export default function PerformancePage() {
                 {insights.map((insight) => (
                   <div
                     key={insight.id}
-                    className="rounded-lg border p-4"
+                    className="border-l-2 border-accent pl-4 py-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -596,7 +548,7 @@ export default function PerformancePage() {
                               ([key, val]) => (
                                 <span
                                   key={key}
-                                  className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                                  className="bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                                 >
                                   {key}: {typeof val === "number" ? val.toFixed(2) : val}
                                 </span>
@@ -606,7 +558,7 @@ export default function PerformancePage() {
                         )}
                       </div>
                       <span
-                        className={`shrink-0 text-sm font-semibold ${insight.impact >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                        className={`shrink-0 text-sm font-semibold ${insight.impact >= 0 ? "text-[var(--color-status-completed)]" : "text-[var(--color-status-failed)]"}`}
                       >
                         {insight.impact >= 0 ? "+" : ""}
                         {(insight.impact * 100).toFixed(1)}% impact
@@ -633,18 +585,15 @@ export default function PerformancePage() {
 
 function ConfidenceBadge({ confidence }: { confidence: number }) {
   const pct = (confidence * 100).toFixed(0);
-  let className: string;
+  let cls: string;
 
   if (confidence >= 0.8) {
-    className =
-      "bg-emerald-600/15 text-emerald-700 border-emerald-600/20 hover:bg-emerald-600/15";
+    cls = "border-[var(--color-status-completed)] text-[var(--color-status-completed)]";
   } else if (confidence >= 0.5) {
-    className =
-      "bg-amber-600/15 text-amber-700 border-amber-600/20 hover:bg-amber-600/15";
+    cls = "border-[var(--color-status-running)] text-[var(--color-status-running)]";
   } else {
-    className =
-      "bg-zinc-600/15 text-zinc-600 border-zinc-600/20 hover:bg-zinc-600/15";
+    cls = "border-[var(--color-status-pending)] text-[var(--color-status-pending)]";
   }
 
-  return <Badge className={className}>{pct}% confidence</Badge>;
+  return <Badge className={cls}>{pct}% confidence</Badge>;
 }
