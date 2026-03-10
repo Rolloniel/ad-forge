@@ -28,6 +28,12 @@ class ApiClient {
     const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        // Clear cookie and redirect to login
+        document.cookie = "adforge_api_key=; path=/; max-age=0";
+        window.location.href = "/login";
+        throw new ApiError(401, "Session expired");
+      }
       const body = await res.json().catch(() => ({ detail: res.statusText }));
       throw new ApiError(res.status, body.detail ?? res.statusText);
     }
