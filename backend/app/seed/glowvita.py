@@ -4,7 +4,6 @@ from __future__ import annotations
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.models import Audience, Brand, Product
@@ -12,7 +11,7 @@ from app.models import Audience, Brand, Product
 BRAND_ID = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 
 
-async def seed_glowvita(engine: AsyncEngine) -> None:
+async def seed_glowvita(engine: AsyncEngine, user_id: uuid.UUID | None = None) -> None:
     session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with session_factory() as session:
@@ -24,6 +23,7 @@ async def seed_glowvita(engine: AsyncEngine) -> None:
         brand = Brand(
             id=BRAND_ID,
             name="GlowVita",
+            user_id=user_id,
             voice="Clean, confident, science-backed but approachable. No hype.",
             visual_guidelines=(
                 "Minimalist aesthetic with warm earth tones. "

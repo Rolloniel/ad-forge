@@ -88,7 +88,7 @@ async def step_handler(
 
 Steps receive keyword-only args. `prev_outputs` maps step names to their return dicts (output chaining). Return value becomes input for next step.
 
-**Auth:** Bearer token via `require_auth` dependency. Single shared `ADFORGE_API_KEY`.
+**Auth:** Bearer token via `require_auth` dependency. Per-user API keys stored in database, managed via CLI (`python -m app.cli create-user`).
 
 ### Frontend (TypeScript/React)
 

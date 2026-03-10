@@ -71,7 +71,11 @@ docker compose up --build
 # Health:   http://localhost:8000/health
 ```
 
-Login with the `ADFORGE_API_KEY` value you set in `.env`.
+Create a user and API key with the CLI, then log in with the generated key:
+
+```bash
+docker compose exec backend python -m app.cli create-user "Admin" --admin
+```
 
 ## Environment Variables
 
@@ -84,7 +88,6 @@ Login with the `ADFORGE_API_KEY` value you set in `.env`.
 | `FAL_KEY` | FAL.ai API key (image/video generation) | Yes |
 | `HEYGEN_API_KEY` | HeyGen API key (avatar video) | Yes |
 | `ELEVENLABS_API_KEY` | ElevenLabs API key (text-to-speech) | Yes |
-| `ADFORGE_API_KEY` | Shared secret for app authentication | Yes |
 | `WORKER_COUNT` | Number of concurrent pipeline workers | No (default: 3) |
 
 ## API Overview
