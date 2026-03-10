@@ -1,9 +1,11 @@
 """Shared fixtures for the AdForge backend test suite."""
 from __future__ import annotations
 
+import hashlib
 import sqlite3
 import uuid
 from collections.abc import AsyncGenerator
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 import pytest_asyncio
@@ -30,6 +32,7 @@ if not hasattr(_oai_mod, "generate_structured_json"):
 from app.db import get_session
 from app.models.base import Base
 from app.models.brand import Audience, Brand, Product
+from app.models.user import ApiKey, User
 
 # Map PostgreSQL types to SQLite-compatible equivalents
 @compiles(JSONB, "sqlite")
@@ -43,7 +46,8 @@ def _compile_uuid_sqlite(type_, compiler, **kw):
 
 
 TEST_DB_URL = "sqlite+aiosqlite://"
-AUTH_HEADERS = {"Authorization": "Bearer dev-key"}
+SEED_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+TEST_RAW_KEY = "adf_" + "t" * 32
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +102,26 @@ async def client(session) -> AsyncGenerator[AsyncClient]:
 
 
 @pytest_asyncio.fixture
-async def authed_client(session) -> AsyncGenerator[AsyncClient]:
+async def seed_user(session) -> User:
+    """Create a test user with an API key."""
+    user = User(id=SEED_USER_ID, name="TestAdmin", is_admin=True)
+    session.add(user)
+    await session.flush()
+    key_hash = hashlib.sha256(TEST_RAW_KEY.encode()).hexdigest()
+    api_key = ApiKey(
+        user_id=user.id,
+        key_hash=key_hash,
+        key_prefix=TEST_RAW_KEY[:8],
+        expires_at=datetime.now(timezone.utc) + timedelta(days=14),
+        is_active=True,
+    )
+    session.add(api_key)
+    await session.commit()
+    return user
+
+
+@pytest_asyncio.fixture
+async def authed_client(session, seed_user) -> AsyncGenerator[AsyncClient]:
     """Test client with valid Bearer auth header."""
     from app.main import app
 
@@ -108,7 +131,9 @@ async def authed_client(session) -> AsyncGenerator[AsyncClient]:
     app.dependency_overrides[get_session] = _override_get_session
     transport = ASGITransport(app=app)
     async with AsyncClient(
-        transport=transport, base_url="http://test", headers=AUTH_HEADERS
+        transport=transport,
+        base_url="http://test",
+        headers={"Authorization": f"Bearer {TEST_RAW_KEY}"},
     ) as c:
         yield c
     app.dependency_overrides.clear()
@@ -124,11 +149,12 @@ SEED_AUDIENCE_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
 
 
 @pytest_asyncio.fixture
-async def seed_brand(session) -> Brand:
-    """Create a brand with one product and one audience."""
+async def seed_brand(session, seed_user) -> Brand:
+    """Create a brand with one product and one audience, owned by seed_user."""
     brand = Brand(
         id=SEED_BRAND_ID,
         name="TestBrand",
+        user_id=SEED_USER_ID,
         voice="Friendly and professional",
         visual_guidelines="Minimalist design",
         offers={"promos": [{"name": "10% Off", "code": "SAVE10"}]},

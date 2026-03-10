@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     fal_key: str = ""
     heygen_api_key: str = ""
     elevenlabs_api_key: str = ""
-    adforge_api_key: str = "dev-key"
     worker_count: int = 3
 
     model_config = {"env_file": ".env", "extra": "ignore"}
