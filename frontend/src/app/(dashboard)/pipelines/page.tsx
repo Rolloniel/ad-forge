@@ -4,28 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
-  Video,
-  Image,
-  FileText,
-  Globe,
-  Type,
-  RefreshCw,
   ArrowLeft,
   Play,
-  Clock,
-  CheckCircle2,
-  XCircle,
   Loader2,
-  Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { api, API_BASE_URL } from "@/lib/api";
 import { useSSE } from "@/lib/use-sse";
@@ -55,14 +37,12 @@ import type {
 const PIPELINES: {
   name: PipelineName;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
   description: string;
   steps: string[];
 }[] = [
   {
     name: "video_ugc",
     label: "Video UGC",
-    icon: Video,
     description:
       "Generate authentic UGC-style video ads with AI avatars and voiceovers",
     steps: [
@@ -76,7 +56,6 @@ const PIPELINES: {
   {
     name: "static_ads",
     label: "Static Ads",
-    icon: Image,
     description:
       "Create high-converting static ad creatives with copy and visuals",
     steps: [
@@ -90,7 +69,6 @@ const PIPELINES: {
   {
     name: "briefs",
     label: "Creative Briefs",
-    icon: FileText,
     description: "AI-generated creative briefs and advertising concepts",
     steps: [
       "Market Research",
@@ -102,7 +80,6 @@ const PIPELINES: {
   {
     name: "landing_pages",
     label: "Landing Pages",
-    icon: Globe,
     description: "Generate optimized landing pages for ad campaigns",
     steps: [
       "Copy Generation",
@@ -114,7 +91,6 @@ const PIPELINES: {
   {
     name: "ad_copy",
     label: "Ad Copy",
-    icon: Type,
     description:
       "Generate compelling ad copy variations for multiple platforms",
     steps: [
@@ -128,7 +104,6 @@ const PIPELINES: {
   {
     name: "feedback_loop",
     label: "Feedback Loop",
-    icon: RefreshCw,
     description:
       "Analyze performance data and generate optimization suggestions",
     steps: [
@@ -174,30 +149,17 @@ function deriveStepStatuses(
 
 function StatusBadge({ status }: { status: JobStatus }) {
   const map: Record<JobStatus, { label: string; cls: string }> = {
-    pending: { label: "Pending", cls: "bg-muted text-muted-foreground" },
-    running: { label: "Running", cls: "bg-yellow-100 text-yellow-700" },
-    completed: { label: "Completed", cls: "bg-green-100 text-green-700" },
-    failed: { label: "Failed", cls: "bg-red-100 text-red-700" },
+    pending: { label: "PENDING", cls: "border-[var(--color-status-pending)] text-[var(--color-status-pending)]" },
+    running: { label: "RUNNING", cls: "border-[var(--color-status-running)] text-[var(--color-status-running)]" },
+    completed: { label: "COMPLETED", cls: "border-[var(--color-status-completed)] text-[var(--color-status-completed)]" },
+    failed: { label: "FAILED", cls: "border-[var(--color-status-failed)] text-[var(--color-status-failed)]" },
   };
   const v = map[status];
   return (
-    <Badge variant="outline" className={cn("text-xs", v.cls)}>
+    <Badge variant="outline" className={v.cls}>
       {v.label}
     </Badge>
   );
-}
-
-function StepIcon({ status }: { status: JobStatus }) {
-  switch (status) {
-    case "completed":
-      return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-    case "running":
-      return <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />;
-    case "failed":
-      return <XCircle className="h-5 w-5 text-red-500" />;
-    default:
-      return <Circle className="h-5 w-5 text-muted-foreground/40" />;
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -375,222 +337,202 @@ export default function PipelinesPage() {
               Back to Pipelines
             </Button>
           )}
-          <h1 className="text-2xl font-bold">
-            {phase === "select" ? "Pipelines" : (pipeline?.label ?? "Pipeline")}
+          <h1 className="text-page-title">
+            {phase === "select" ? "PIPELINES" : (pipeline?.label ?? "Pipeline").toUpperCase()}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {phase === "select" &&
-              "Select a creative generation pipeline to get started."}
-            {phase === "configure" && "Configure your pipeline run."}
-            {phase === "running" &&
-              "Pipeline is running. Watch progress below."}
-            {phase === "completed" && "Pipeline run complete."}
-          </p>
         </div>
 
         {/* ---- Phase: select ---- */}
         {phase === "select" && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="stagger-children grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PIPELINES.map((p) => (
-              <Card
+              <div
                 key={p.name}
-                className="cursor-pointer transition-colors hover:border-primary/50 hover:shadow-md"
+                className="brutalist-hover cursor-pointer border border-border bg-card p-5"
                 onClick={() => selectPipeline(p.name)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <p.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-base">{p.label}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{p.description}</CardDescription>
-                  <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {p.steps.length} steps
-                  </div>
-                </CardContent>
-              </Card>
+                <h3 className="text-section-header">{p.label}</h3>
+                <p className="mt-2 font-mono text-sm text-muted-foreground">
+                  {p.description}
+                </p>
+                <p className="text-label text-muted-foreground mt-3">
+                  {p.steps.length} STEPS
+                </p>
+              </div>
             ))}
           </div>
         )}
 
         {/* ---- Phase: configure ---- */}
         {phase === "configure" && pipeline && (
-          <Card>
-            <CardContent className="space-y-5 pt-6">
-              {/* Brand */}
-              <div className="space-y-2">
-                <Label>Brand</Label>
-                <Select
-                  value={config.brand_id}
-                  onValueChange={(v) =>
-                    setConfig((c) => ({
-                      ...c,
-                      brand_id: v,
-                      product_ids: [],
-                      audience_ids: [],
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brands.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="space-y-5">
+            {/* Brand */}
+            <div className="space-y-2 border-b border-border pb-5">
+              <Label>Brand</Label>
+              <Select
+                value={config.brand_id}
+                onValueChange={(v) =>
+                  setConfig((c) => ({
+                    ...c,
+                    brand_id: v,
+                    product_ids: [],
+                    audience_ids: [],
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Products (toggle chips) */}
+            {selectedBrand && selectedBrand.products.length > 0 && (
+              <div className="space-y-2 border-b border-border pb-5">
+                <Label>Products</Label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedBrand.products.map((p) => {
+                    const on = config.product_ids.includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() =>
+                          setConfig((c) => ({
+                            ...c,
+                            product_ids: on
+                              ? c.product_ids.filter((id) => id !== p.id)
+                              : [...c.product_ids, p.id],
+                          }))
+                        }
+                        className={cn(
+                          "border px-3 py-1 text-sm transition-colors",
+                          on
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input hover:bg-accent hover:text-accent-foreground",
+                        )}
+                      >
+                        {p.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+            )}
 
-              {/* Products (toggle chips) */}
-              {selectedBrand && selectedBrand.products.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Products</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedBrand.products.map((p) => {
-                      const on = config.product_ids.includes(p.id);
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() =>
-                            setConfig((c) => ({
-                              ...c,
-                              product_ids: on
-                                ? c.product_ids.filter((id) => id !== p.id)
-                                : [...c.product_ids, p.id],
-                            }))
-                          }
-                          className={cn(
-                            "rounded-full border px-3 py-1 text-sm transition-colors",
-                            on
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-input hover:bg-accent",
-                          )}
-                        >
-                          {p.name}
-                        </button>
-                      );
-                    })}
-                  </div>
+            {/* Audiences (toggle chips) */}
+            {selectedBrand && selectedBrand.audiences.length > 0 && (
+              <div className="space-y-2 border-b border-border pb-5">
+                <Label>Audiences</Label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedBrand.audiences.map((a) => {
+                    const on = config.audience_ids.includes(a.id);
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() =>
+                          setConfig((c) => ({
+                            ...c,
+                            audience_ids: on
+                              ? c.audience_ids.filter((id) => id !== a.id)
+                              : [...c.audience_ids, a.id],
+                          }))
+                        }
+                        className={cn(
+                          "border px-3 py-1 text-sm transition-colors",
+                          on
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input hover:bg-accent hover:text-accent-foreground",
+                        )}
+                      >
+                        {a.name}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Audiences (toggle chips) */}
-              {selectedBrand && selectedBrand.audiences.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Audiences</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedBrand.audiences.map((a) => {
-                      const on = config.audience_ids.includes(a.id);
-                      return (
-                        <button
-                          key={a.id}
-                          type="button"
-                          onClick={() =>
-                            setConfig((c) => ({
-                              ...c,
-                              audience_ids: on
-                                ? c.audience_ids.filter((id) => id !== a.id)
-                                : [...c.audience_ids, a.id],
-                            }))
-                          }
-                          className={cn(
-                            "rounded-full border px-3 py-1 text-sm transition-colors",
-                            on
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-input hover:bg-accent",
-                          )}
-                        >
-                          {a.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+            {/* Creative angles */}
+            <div className="space-y-2 border-b border-border pb-5">
+              <Label>Creative Angles</Label>
+              <Input
+                placeholder="e.g. social proof, urgency, luxury lifestyle (comma-separated)"
+                value={config.creative_angles}
+                onChange={(e) =>
+                  setConfig((c) => ({
+                    ...c,
+                    creative_angles: e.target.value,
+                  }))
+                }
+              />
+            </div>
 
-              {/* Creative angles */}
-              <div className="space-y-2">
-                <Label>Creative Angles</Label>
+            {/* Variation count */}
+            <div className="space-y-2 border-b border-border pb-5">
+              <Label>Variations</Label>
+              <div className="flex items-center gap-3">
                 <Input
-                  placeholder="e.g. social proof, urgency, luxury lifestyle (comma-separated)"
-                  value={config.creative_angles}
+                  type="number"
+                  min={1}
+                  max={20}
+                  className="w-24"
+                  value={config.variation_count}
                   onChange={(e) =>
                     setConfig((c) => ({
                       ...c,
-                      creative_angles: e.target.value,
+                      variation_count: Math.max(
+                        1,
+                        Math.min(20, Number(e.target.value) || 1),
+                      ),
                     }))
                   }
                 />
+                <span className="text-sm text-muted-foreground">
+                  variations per angle
+                </span>
               </div>
+            </div>
 
-              {/* Variation count */}
-              <div className="space-y-2">
-                <Label>Variations</Label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={20}
-                    className="w-24"
-                    value={config.variation_count}
-                    onChange={(e) =>
-                      setConfig((c) => ({
-                        ...c,
-                        variation_count: Math.max(
-                          1,
-                          Math.min(20, Number(e.target.value) || 1),
-                        ),
-                      }))
-                    }
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    variations per angle
+            {/* Pipeline steps preview */}
+            <div className="space-y-2 border-b border-border pb-5">
+              <span className="text-label text-muted-foreground">Pipeline Steps</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {pipeline.steps.map((step, i) => (
+                  <span
+                    key={step}
+                    className="text-label flex items-center gap-1.5 text-muted-foreground"
+                  >
+                    {i > 0 && <span className="text-border">&rarr;</span>}
+                    {step}
                   </span>
-                </div>
+                ))}
               </div>
+            </div>
 
-              {/* Pipeline steps preview */}
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">Pipeline Steps</Label>
-                <div className="flex flex-wrap items-center gap-2">
-                  {pipeline.steps.map((step, i) => (
-                    <span
-                      key={step}
-                      className="flex items-center gap-1.5 text-sm text-muted-foreground"
-                    >
-                      {i > 0 && <span className="text-border">&rarr;</span>}
-                      {step}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-              <Separator />
-
-              {error && <p className="text-sm text-destructive">{error}</p>}
-
-              <Button
-                size="lg"
-                disabled={!config.brand_id || launching}
-                onClick={launchPipeline}
-              >
-                {launching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
-                {launching ? "Launching\u2026" : "Launch Pipeline"}
-              </Button>
-            </CardContent>
-          </Card>
+            <Button
+              size="lg"
+              disabled={!config.brand_id || launching}
+              onClick={launchPipeline}
+            >
+              {launching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+              {launching ? "Launching\u2026" : "Launch Pipeline"}
+            </Button>
+          </div>
         )}
 
         {/* ---- Phase: running / completed ---- */}
@@ -601,7 +543,7 @@ export default function PipelinesPage() {
               <StatusBadge status={activeJob?.status ?? "running"} />
               {connected && phase === "running" && (
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                  <span className="h-1.5 w-1.5 animate-pulse bg-status-running" />
                   Live
                 </span>
               )}
@@ -611,57 +553,68 @@ export default function PipelinesPage() {
             </div>
 
             {/* Step-by-step visualization */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-0">
-                  {pipeline.steps.map((stepName, i) => {
-                    const status = stepStatuses[stepName] ?? "pending";
-                    return (
-                      <div key={stepName} className="flex items-start gap-4">
-                        {/* Timeline */}
-                        <div className="flex flex-col items-center">
-                          <StepIcon status={status} />
-                          {i < pipeline.steps.length - 1 && (
-                            <div
-                              className={cn(
-                                "h-8 w-0.5",
-                                status === "completed"
-                                  ? "bg-green-500"
-                                  : "bg-border",
-                              )}
-                            />
+            <div className="border border-border bg-card p-6">
+              <div className="space-y-0">
+                {pipeline.steps.map((stepName, i) => {
+                  const status = stepStatuses[stepName] ?? "pending";
+                  return (
+                    <div key={stepName} className="flex items-start gap-4">
+                      {/* Timeline connector */}
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={cn(
+                            "mt-1 h-2 w-2",
+                            status === "completed" && "bg-status-completed",
+                            status === "running" && "bg-status-running",
+                            status === "failed" && "bg-status-failed",
+                            status === "pending" && "bg-muted-foreground/40",
                           )}
-                        </div>
-                        {/* Label */}
-                        <div className="pb-8">
-                          <p
+                        />
+                        {i < pipeline.steps.length - 1 && (
+                          <div
                             className={cn(
-                              "text-sm font-medium",
-                              status === "running" && "text-yellow-600",
-                              status === "completed" && "text-green-600",
-                              status === "failed" && "text-destructive",
-                              status === "pending" && "text-muted-foreground",
+                              "h-8 w-0 border-l",
+                              status === "completed"
+                                ? "border-status-completed"
+                                : "border-border",
                             )}
-                          >
-                            {stepName}
-                          </p>
-                          {status === "running" && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              Processing&hellip;
-                            </p>
-                          )}
-                          {status === "failed" && (
-                            <p className="mt-0.5 text-xs text-destructive">
-                              Step failed
-                            </p>
-                          )}
-                        </div>
+                          />
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      {/* Label */}
+                      <div
+                        className={cn(
+                          "pb-5",
+                          status === "running" && "animate-pulse-border border-l-2 pl-3",
+                        )}
+                      >
+                        <p
+                          className={cn(
+                            "font-mono text-sm font-medium",
+                            status === "completed" && "text-muted-foreground line-through",
+                            status === "running" && "text-foreground",
+                            status === "failed" && "text-destructive",
+                            status === "pending" && "text-muted-foreground/40",
+                          )}
+                        >
+                          {stepName}
+                        </p>
+                        {status === "running" && (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            Processing&hellip;
+                          </p>
+                        )}
+                        {status === "failed" && (
+                          <p className="mt-0.5 text-xs text-destructive">
+                            Step failed
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Post-completion actions */}
             {phase === "completed" && (
@@ -685,19 +638,20 @@ export default function PipelinesPage() {
 
       {/* ------- Job history sidebar ------- */}
       <aside className="hidden w-72 shrink-0 lg:block">
-        <h2 className="mb-3 text-sm font-semibold">Recent Jobs</h2>
+        <h2 className="text-label mb-3">Recent Jobs</h2>
         <div className="space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 10rem)" }}>
           {jobs.length === 0 && (
             <p className="text-sm text-muted-foreground">No jobs yet.</p>
           )}
           {jobs.map((job) => {
             const pDef = PIPELINES.find((p) => p.name === job.pipeline);
+            const isActive = activeJob?.id === job.id;
             return (
-              <Card
+              <div
                 key={job.id}
                 className={cn(
-                  "cursor-pointer transition-colors hover:bg-accent/50",
-                  activeJob?.id === job.id && "border-primary",
+                  "brutalist-hover cursor-pointer border border-border bg-card p-3",
+                  isActive && "border-l-2 border-l-accent",
                 )}
                 onClick={() => {
                   setSelectedPipeline(job.pipeline);
@@ -710,18 +664,16 @@ export default function PipelinesPage() {
                   resetSSE();
                 }}
               >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      {pDef?.label ?? job.pipeline}
-                    </span>
-                    <StatusBadge status={job.status} />
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {new Date(job.created_at).toLocaleString()}
-                  </p>
-                </CardContent>
-              </Card>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    {pDef?.label ?? job.pipeline}
+                  </span>
+                  <StatusBadge status={job.status} />
+                </div>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  {new Date(job.created_at).toLocaleString()}
+                </p>
+              </div>
             );
           })}
         </div>
