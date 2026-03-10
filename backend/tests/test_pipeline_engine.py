@@ -8,18 +8,16 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.engine.pipeline_engine import (
-    PipelineDef,
-    StepDef,
-    _registry,
-    create_job,
-)
+from app.engine.pipeline_engine import create_job
 from app.engine.job_worker import execute_job
 from app.models.brand import Brand
 from app.models.job import Job, JobStatus, JobStep, StepStatus
+from app.models.user import User
+from app.pipelines import PipelineDefinition, REGISTRY as _registry
 
 
 BRAND_ID = uuid.UUID("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000099")
 
 
 @pytest.fixture(autouse=True)
@@ -33,7 +31,10 @@ def clean_registry():
 
 @pytest.fixture
 async def brand(session: AsyncSession) -> Brand:
-    brand = Brand(id=BRAND_ID, name="TestBrand")
+    user = User(id=USER_ID, name="PipelineTestUser", is_admin=False)
+    session.add(user)
+    await session.flush()
+    brand = Brand(id=BRAND_ID, name="TestBrand", user_id=USER_ID)
     session.add(brand)
     await session.commit()
     return brand
@@ -45,11 +46,11 @@ async def brand(session: AsyncSession) -> Brand:
 
 
 async def test_create_job_success(session: AsyncSession, brand):
-    async def step_a(prev, cfg):
+    async def step_a(*, job_id, config, prev_outputs, session):
         return {"a": 1}
 
-    _registry["demo"] = PipelineDef(
-        name="demo", steps=[StepDef("step_a", step_a)]
+    _registry["demo"] = PipelineDefinition(
+        name="demo", steps=[("step_a", step_a)]
     )
 
     job = await create_job(session, "demo", BRAND_ID, {"key": "val"})
@@ -78,15 +79,15 @@ async def test_create_job_unknown_pipeline(session: AsyncSession, brand):
 
 @patch("app.engine.job_worker.notify_step_event", new_callable=AsyncMock)
 async def test_execute_job_success(mock_notify, session: AsyncSession, brand):
-    async def step_a(prev, cfg):
+    async def step_a(*, job_id, config, prev_outputs, session):
         return {"from_a": True}
 
-    async def step_b(prev, cfg):
-        return {"from_b": True, "got_a": prev.get("from_a")}
+    async def step_b(*, job_id, config, prev_outputs, session):
+        return {"from_b": True, "got_a": prev_outputs.get("step_a", {}).get("from_a")}
 
-    _registry["two_step"] = PipelineDef(
+    _registry["two_step"] = PipelineDefinition(
         name="two_step",
-        steps=[StepDef("step_a", step_a), StepDef("step_b", step_b)],
+        steps=[("step_a", step_a), ("step_b", step_b)],
     )
 
     job = await create_job(session, "two_step", BRAND_ID, {})
@@ -120,15 +121,15 @@ async def test_execute_job_success(mock_notify, session: AsyncSession, brand):
 
 @patch("app.engine.job_worker.notify_step_event", new_callable=AsyncMock)
 async def test_step_output_chaining(mock_notify, session: AsyncSession, brand):
-    async def first(prev, cfg):
+    async def first(*, job_id, config, prev_outputs, session):
         return {"x": 42}
 
-    async def second(prev, cfg):
-        return {"doubled": prev["x"] * 2}
+    async def second(*, job_id, config, prev_outputs, session):
+        return {"doubled": prev_outputs["first"]["x"] * 2}
 
-    _registry["chain"] = PipelineDef(
+    _registry["chain"] = PipelineDefinition(
         name="chain",
-        steps=[StepDef("first", first), StepDef("second", second)],
+        steps=[("first", first), ("second", second)],
     )
 
     job = await create_job(session, "chain", BRAND_ID, {})
@@ -153,15 +154,15 @@ async def test_step_output_chaining(mock_notify, session: AsyncSession, brand):
 
 @patch("app.engine.job_worker.notify_step_event", new_callable=AsyncMock)
 async def test_execute_job_step_failure(mock_notify, session: AsyncSession, brand):
-    async def good_step(prev, cfg):
+    async def good_step(*, job_id, config, prev_outputs, session):
         return {"ok": True}
 
-    async def bad_step(prev, cfg):
+    async def bad_step(*, job_id, config, prev_outputs, session):
         raise RuntimeError("boom")
 
-    _registry["fail_pipe"] = PipelineDef(
+    _registry["fail_pipe"] = PipelineDefinition(
         name="fail_pipe",
-        steps=[StepDef("good", good_step), StepDef("bad", bad_step)],
+        steps=[("good", good_step), ("bad", bad_step)],
     )
 
     job = await create_job(session, "fail_pipe", BRAND_ID, {})
@@ -186,8 +187,8 @@ async def test_execute_job_step_failure(mock_notify, session: AsyncSession, bran
 @patch("app.engine.job_worker.notify_step_event", new_callable=AsyncMock)
 async def test_execute_job_unknown_pipeline(mock_notify, session: AsyncSession, brand):
     """If pipeline was removed after job creation, job should be marked failed."""
-    _registry["ephemeral"] = PipelineDef(
-        name="ephemeral", steps=[StepDef("s", AsyncMock(return_value={}))]
+    _registry["ephemeral"] = PipelineDefinition(
+        name="ephemeral", steps=[("s", AsyncMock(return_value={}))]
     )
 
     job = await create_job(session, "ephemeral", BRAND_ID, {})
@@ -212,12 +213,12 @@ async def test_execute_job_unknown_pipeline(mock_notify, session: AsyncSession, 
 async def test_config_passed_as_initial_input(mock_notify, session: AsyncSession, brand):
     received = {}
 
-    async def capture(prev, cfg):
-        received.update(prev)
+    async def capture(*, job_id, config, prev_outputs, session):
+        received.update(config)
         return {"done": True}
 
-    _registry["cfg_pipe"] = PipelineDef(
-        name="cfg_pipe", steps=[StepDef("capture", capture)]
+    _registry["cfg_pipe"] = PipelineDefinition(
+        name="cfg_pipe", steps=[("capture", capture)]
     )
 
     config = {"campaign_goal": "awareness", "platform": "instagram"}

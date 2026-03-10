@@ -5,7 +5,29 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.job import Job, JobStatus, JobStep
+
+# Maps each pipeline to the Settings attributes it requires at runtime.
+PIPELINE_API_REQUIREMENTS: dict[str, list[str]] = {
+    "briefs": ["openai_api_key"],
+    "ad_copy": ["openai_api_key"],
+    "static_ads": ["openai_api_key", "fal_key"],
+    "video_ugc": ["openai_api_key", "elevenlabs_api_key", "heygen_api_key"],
+    "landing_pages": ["openai_api_key"],
+    "feedback_loop": ["openai_api_key"],
+}
+
+
+def validate_api_keys(pipeline_name: str) -> None:
+    """Raise ``ValueError`` early if required API keys are not configured."""
+    required = PIPELINE_API_REQUIREMENTS.get(pipeline_name, [])
+    missing = [k for k in required if not getattr(settings, k, "")]
+    if missing:
+        raise ValueError(
+            f"Pipeline '{pipeline_name}' requires API keys: {', '.join(missing)}. "
+            "Configure them in environment variables."
+        )
 
 
 def get_pipeline(name: str):
@@ -55,6 +77,8 @@ async def create_job(
     brand_id: uuid.UUID,
     config: dict | None = None,
 ) -> Job:
+    validate_api_keys(pipeline_name)
+
     pipeline = get_pipeline(pipeline_name)
     if pipeline is None:
         raise ValueError(f"Unknown pipeline: {pipeline_name}")

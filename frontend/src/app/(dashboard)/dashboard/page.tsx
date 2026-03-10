@@ -79,7 +79,7 @@ function computeMetrics(jobs: Job[]): DashboardMetrics {
 
   const outputsGenerated = jobs
     .filter((j) => j.status === "completed")
-    .reduce((sum, j) => sum + j.steps.length, 0);
+    .reduce((sum, j) => sum + (j.steps?.length ?? 0), 0);
 
   const brandIds = new Set(jobs.map((j) => j.brand_id));
 
@@ -105,7 +105,7 @@ export default function DashboardPage() {
   const fetchJobs = useCallback(async () => {
     try {
       const data = await api.get<PaginatedResponse<Job>>(
-        "/api/jobs?page=1&per_page=10",
+        "/api/jobs?page=1&page_size=10",
       );
       setJobs(data.items);
       setMetrics(computeMetrics(data.items));
@@ -243,7 +243,9 @@ export default function DashboardPage() {
                   <TableCell>{statusBadge(job.status)}</TableCell>
                   <TableCell>{formatTime(job.created_at)}</TableCell>
                   <TableCell className="text-right">
-                    {formatDuration(job.created_at, job.updated_at)}
+                    {job.updated_at
+                      ? formatDuration(job.created_at, job.updated_at)
+                      : "\u2014"}
                   </TableCell>
                 </TableRow>
               ))}
