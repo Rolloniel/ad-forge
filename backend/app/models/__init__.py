@@ -4,8 +4,10 @@ from .event import Event
 from .insight import Insight
 from .job import Job, JobStatus, JobStep, StepStatus
 from .output import Output, PerformanceMetric
+from .user import ApiKey, User
 
 __all__ = [
+    "ApiKey",
     "Base",
     "Audience",
     "Brand",
@@ -18,4 +20,5 @@ __all__ = [
     "StepStatus",
     "Output",
     "PerformanceMetric",
+    "User",
 ]
