@@ -6,7 +6,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -33,7 +33,7 @@ class StepResponse(BaseModel):
     model_config = {"from_attributes": True}
 
     id: uuid.UUID
-    step_name: str
+    name: str = Field(validation_alias="step_name")
     status: str
     input: dict | None = None
     output: dict | None = None
@@ -46,13 +46,13 @@ class JobResponse(BaseModel):
     model_config = {"from_attributes": True}
 
     id: uuid.UUID
-    pipeline_name: str
+    pipeline: str = Field(validation_alias="pipeline_name")
     brand_id: uuid.UUID
     status: str
     config: dict | None = None
     created_at: datetime
     started_at: datetime | None = None
-    completed_at: datetime | None = None
+    updated_at: datetime | None = Field(None, validation_alias="completed_at")
 
 
 class JobDetailResponse(JobResponse):

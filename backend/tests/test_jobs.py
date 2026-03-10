@@ -12,15 +12,15 @@ from tests.conftest import SEED_BRAND_ID
 
 # Register a simple test pipeline in the engine registry so routes can find it.
 def _register_test_pipeline():
-    from app.engine.pipeline_engine import StepDef, PipelineDef, _registry
+    from app.pipelines import PipelineDefinition, REGISTRY
 
-    async def noop_step(prev: dict, config: dict) -> dict:
+    async def noop_step(*, job_id, config, prev_outputs, session) -> dict:
         return {"result": "ok"}
 
-    if "test_pipe" not in _registry:
-        _registry["test_pipe"] = PipelineDef(
+    if "test_pipe" not in REGISTRY:
+        REGISTRY["test_pipe"] = PipelineDefinition(
             name="test_pipe",
-            steps=[StepDef("step_one", noop_step)],
+            steps=[("step_one", noop_step)],
         )
 
 
@@ -36,11 +36,11 @@ async def test_run_pipeline_creates_job(authed_client: AsyncClient, seed_brand):
     )
     assert resp.status_code == 201
     data = resp.json()
-    assert data["pipeline_name"] == "test_pipe"
+    assert data["pipeline"] == "test_pipe"
     assert data["status"] == "pending"
     assert data["brand_id"] == str(SEED_BRAND_ID)
     assert len(data["steps"]) == 1
-    assert data["steps"][0]["step_name"] == "step_one"
+    assert data["steps"][0]["name"] == "step_one"
 
 
 async def test_run_pipeline_unknown_returns_404(authed_client: AsyncClient, seed_brand):
@@ -69,7 +69,7 @@ async def test_list_jobs_after_create(authed_client: AsyncClient, seed_brand):
     assert resp.status_code == 200
     data = resp.json()
     assert data["total"] >= 1
-    assert data["items"][0]["pipeline_name"] == "test_pipe"
+    assert data["items"][0]["pipeline"] == "test_pipe"
 
 
 async def test_list_jobs_filter_by_pipeline(authed_client: AsyncClient, seed_brand):
