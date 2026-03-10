@@ -32,9 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             toastOptions={{
               unstyled: true,
               classNames: {
-                toast: "bg-[#1A1A1A] text-[#F2F0ED] font-mono text-xs uppercase tracking-wider p-4 border border-[#333] flex items-center gap-3",
+                toast: "bg-primary text-primary-foreground font-mono text-xs uppercase tracking-wider p-4 border border-border flex items-center gap-3",
                 title: "font-medium",
-                description: "text-[#9B9590]",
+                description: "text-muted-foreground",
               },
             }}
           />

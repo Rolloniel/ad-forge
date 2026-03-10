@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --font-display: "Darker Grotesque", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
   --color-background: #F2F0ED;

@@ -25,7 +25,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[rgba(26,26,26,0.6)] md:hidden"
+          className="fixed inset-0 z-40 bg-foreground/60 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

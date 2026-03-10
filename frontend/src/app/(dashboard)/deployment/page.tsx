@@ -372,7 +372,7 @@ function JsonViewer({ data, title }: { data: unknown; title: string }) {
         <span className="text-label">{title}</span>
         <CopyButton text={json} />
       </div>
-      <pre className="max-h-80 overflow-auto border border-border bg-[#F7F5F2] p-4 font-mono text-xs leading-relaxed dark:bg-[#1A1816]">
+      <pre className="max-h-80 overflow-auto border border-border bg-secondary p-4 font-mono text-xs leading-relaxed">
         <code>{highlightJson(json)}</code>
       </pre>
     </div>

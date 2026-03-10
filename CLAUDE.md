@@ -113,6 +113,16 @@ Steps receive keyword-only args. `prev_outputs` maps step names to their return 
 
 **Path alias:** `@/*` maps to `src/*`.
 
+## E2E Testing
+
+An API key for browser-based testing (Playwright) is available:
+
+- **API Key:** `adf_dd956bf027aebf0886de5c5253111fbc`
+- **User:** E2E Tester (non-admin)
+- **Expires:** 2026-04-09
+
+When using Playwright to test the frontend, log in via the `/login` page by filling the API Key field with this key. The CLI command to create users against production runs inside the backend container via Coolify Terminal (sidebar → Terminal → select `localhost -> e8cwwkoogo0osss804ks8s8w-*` container).
+
 ## Important Files
 
 - `backend/app/models/user.py` — `User` and `ApiKey` models
