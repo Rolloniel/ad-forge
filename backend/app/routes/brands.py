@@ -11,12 +11,12 @@ from sqlalchemy.orm import selectinload
 
 from app.db import get_session
 from app.models.brand import Audience, Brand, Product
+from app.models.user import User
 from app.routes.auth import require_auth
 
 router = APIRouter(
     prefix="/api/brands",
     tags=["brands"],
-    dependencies=[Depends(require_auth)],
 )
 
 
@@ -91,10 +91,14 @@ def _eager_brand_opts():
 
 
 @router.get("", response_model=list[BrandOut])
-async def list_brands(session: AsyncSession = Depends(get_session)):
-    result = await session.execute(
-        select(Brand).options(*_eager_brand_opts()).order_by(Brand.name)
-    )
+async def list_brands(
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
+):
+    query = select(Brand).options(*_eager_brand_opts()).order_by(Brand.name)
+    if not user.is_admin:
+        query = query.where(Brand.user_id == user.id)
+    result = await session.execute(query)
     return result.scalars().all()
 
 
@@ -102,12 +106,14 @@ async def list_brands(session: AsyncSession = Depends(get_session)):
 async def create_brand(
     body: BrandCreate,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
     brand = Brand(
         name=body.name,
         voice=body.voice,
         visual_guidelines=body.visual_guidelines,
         offers=body.offers,
+        user_id=user.id,
     )
     if body.products:
         brand.products = [Product(**p.model_dump()) for p in body.products]
@@ -123,10 +129,12 @@ async def create_brand(
 async def get_brand(
     brand_id: uuid.UUID,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
-    result = await session.execute(
-        select(Brand).where(Brand.id == brand_id).options(*_eager_brand_opts())
-    )
+    query = select(Brand).where(Brand.id == brand_id).options(*_eager_brand_opts())
+    if not user.is_admin:
+        query = query.where(Brand.user_id == user.id)
+    result = await session.execute(query)
     brand = result.scalar_one_or_none()
     if brand is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
@@ -138,10 +146,12 @@ async def update_brand(
     brand_id: uuid.UUID,
     body: BrandUpdate,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
-    result = await session.execute(
-        select(Brand).where(Brand.id == brand_id).options(*_eager_brand_opts())
-    )
+    query = select(Brand).where(Brand.id == brand_id).options(*_eager_brand_opts())
+    if not user.is_admin:
+        query = query.where(Brand.user_id == user.id)
+    result = await session.execute(query)
     brand = result.scalar_one_or_none()
     if brand is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")

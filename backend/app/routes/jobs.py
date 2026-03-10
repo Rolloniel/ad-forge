@@ -4,7 +4,7 @@ import json
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import func, select
@@ -18,6 +18,8 @@ from app.engine.event_bus import listen_job_events
 from app.engine.pipeline_engine import create_job
 from app.models.brand import Brand
 from app.models.job import Job
+from app.models.user import User
+from app.routes.auth import _lookup_user_by_key, require_auth
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
@@ -69,12 +71,16 @@ async def run_pipeline(
     name: str,
     body: RunPipelineRequest,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
     try:
-        brand = (await session.execute(
+        query = (
             select(Brand).where(Brand.id == body.brand_id)
             .options(selectinload(Brand.products), selectinload(Brand.audiences))
-        )).scalar_one_or_none()
+        )
+        if not user.is_admin:
+            query = query.where(Brand.user_id == user.id)
+        brand = (await session.execute(query)).scalar_one_or_none()
         if brand is None:
             raise HTTPException(status_code=404, detail=f"Brand {body.brand_id} not found")
 
@@ -95,6 +101,7 @@ async def run_pipeline(
 @router.get("/jobs", response_model=JobListResponse)
 async def list_jobs(
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
     status: str | None = None,
     pipeline: str | None = None,
     page: int = Query(1, ge=1),
@@ -102,6 +109,10 @@ async def list_jobs(
 ):
     query = select(Job)
     count_query = select(func.count()).select_from(Job)
+
+    if not user.is_admin:
+        query = query.join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+        count_query = count_query.join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
 
     if status:
         query = query.where(Job.status == status)
@@ -125,10 +136,12 @@ async def list_jobs(
 async def get_job(
     job_id: uuid.UUID,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
-    result = await session.execute(
-        select(Job).where(Job.id == job_id).options(selectinload(Job.steps))
-    )
+    query = select(Job).where(Job.id == job_id).options(selectinload(Job.steps))
+    if not user.is_admin:
+        query = query.join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+    result = await session.execute(query)
     job = result.scalar_one_or_none()
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -136,9 +149,20 @@ async def get_job(
 
 
 @router.get("/jobs/{job_id}/events")
-async def job_events_sse(job_id: uuid.UUID):
+async def job_events_sse(job_id: uuid.UUID, authorization: str = Header(...)):
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization header must use Bearer scheme")
+    token = authorization.removeprefix("Bearer ")
+
     async with async_session() as session:
-        result = await session.execute(select(Job.id).where(Job.id == job_id))
+        user = await _lookup_user_by_key(session, token)
+        if user is None:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        query = select(Job).where(Job.id == job_id)
+        if not user.is_admin:
+            query = query.join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+        result = await session.execute(query)
         if result.scalar_one_or_none() is None:
             raise HTTPException(status_code=404, detail="Job not found")
 

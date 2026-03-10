@@ -18,6 +18,9 @@ from app.db import get_session
 from app.engine import job_queue
 from app.engine.pipeline_engine import create_job
 from app.models import Insight, Output, PerformanceMetric
+from app.models.brand import Brand
+from app.models.user import User
+from app.routes.auth import require_auth
 
 router = APIRouter(prefix="/api/performance", tags=["performance"])
 
@@ -81,8 +84,17 @@ class MetricListResponse(BaseModel):
 async def simulate_performance(
     body: SimulateRequest,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
     """Trigger the performance feedback loop pipeline."""
+    # Verify brand belongs to user
+    if not user.is_admin:
+        brand_result = await session.execute(
+            select(Brand.id).where(Brand.id == body.brand_id, Brand.user_id == user.id)
+        )
+        if brand_result.scalar_one_or_none() is None:
+            raise HTTPException(status_code=404, detail="Brand not found")
+
     config = {
         "brand_id": str(body.brand_id),
         "output_count": body.output_count,
@@ -115,8 +127,17 @@ async def get_insights(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
     """Query insights for a brand, optionally filtered by type."""
+    # Verify brand belongs to user
+    if not user.is_admin:
+        brand_result = await session.execute(
+            select(Brand.id).where(Brand.id == brand_id, Brand.user_id == user.id)
+        )
+        if brand_result.scalar_one_or_none() is None:
+            raise HTTPException(status_code=404, detail="Brand not found")
+
     query = select(Insight).where(Insight.brand_id == brand_id)
     count_query = select(func.count()).select_from(Insight).where(
         Insight.brand_id == brand_id
@@ -142,8 +163,17 @@ async def get_metrics(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ):
     """Query performance metrics, filtered by brand or specific output."""
+    # Verify brand belongs to user
+    if not user.is_admin:
+        brand_result = await session.execute(
+            select(Brand.id).where(Brand.id == brand_id, Brand.user_id == user.id)
+        )
+        if brand_result.scalar_one_or_none() is None:
+            raise HTTPException(status_code=404, detail="Brand not found")
+
     # Join through Output to filter by brand
     query = (
         select(PerformanceMetric)

@@ -14,7 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db import get_session
+from app.models.brand import Brand
+from app.models.job import Job
 from app.models.output import Output
+from app.models.user import User
+from app.routes.auth import require_auth
 
 router = APIRouter(prefix="/api/outputs", tags=["outputs"])
 
@@ -59,6 +63,7 @@ async def list_outputs(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ) -> OutputListResponse:
     """List outputs with optional filters and pagination."""
     filters = []
@@ -71,18 +76,23 @@ async def list_outputs(
     if created_before is not None:
         filters.append(Output.created_at <= created_before)
 
-    count_result = await session.execute(
-        select(func.count(Output.id)).where(*filters)
-    )
-    total = count_result.scalar_one()
-
-    result = await session.execute(
+    count_query = select(func.count(Output.id)).where(*filters)
+    data_query = (
         select(Output)
         .where(*filters)
         .order_by(Output.created_at.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
+
+    if not user.is_admin:
+        count_query = count_query.join(Job, Output.job_id == Job.id).join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+        data_query = data_query.join(Job, Output.job_id == Job.id).join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+
+    count_result = await session.execute(count_query)
+    total = count_result.scalar_one()
+
+    result = await session.execute(data_query)
     outputs = result.scalars().all()
 
     return OutputListResponse(
@@ -97,13 +107,17 @@ async def list_outputs(
 async def get_output(
     output_id: uuid.UUID,
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ) -> OutputResponse:
     """Get a single output with full metadata."""
-    result = await session.execute(
+    query = (
         select(Output)
         .where(Output.id == output_id)
         .options(selectinload(Output.performance_metrics))
     )
+    if not user.is_admin:
+        query = query.join(Job, Output.job_id == Job.id).join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+    result = await session.execute(query)
     output = result.scalar_one_or_none()
     if output is None:
         raise HTTPException(status_code=404, detail="Output not found")
@@ -115,9 +129,14 @@ async def get_output_file(
     output_id: uuid.UUID,
     download: bool = Query(False),
     session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_auth),
 ) -> FileResponse:
     """Serve the actual generated file from local disk."""
-    output = await session.get(Output, output_id)
+    query = select(Output).where(Output.id == output_id)
+    if not user.is_admin:
+        query = query.join(Job, Output.job_id == Job.id).join(Brand, Job.brand_id == Brand.id).where(Brand.user_id == user.id)
+    result = await session.execute(query)
+    output = result.scalar_one_or_none()
     if output is None:
         raise HTTPException(status_code=404, detail="Output not found")
 
