@@ -11,11 +11,9 @@ import {
   CheckSquare,
   Square,
   Loader2,
-  X,
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -124,9 +122,9 @@ function OutputCard({
   const TypeIcon = outputTypeIcon(output.output_type);
 
   return (
-    <Card
+    <div
       className={cn(
-        "group relative cursor-pointer overflow-hidden transition-all hover:shadow-md",
+        "group relative cursor-pointer overflow-hidden border border-border bg-card brutalist-hover",
         isSelected && "ring-2 ring-primary",
       )}
       onClick={onPreview}
@@ -135,8 +133,8 @@ function OutputCard({
       <button
         type="button"
         className={cn(
-          "absolute left-2 top-2 z-10 rounded-md p-1 transition-opacity",
-          "bg-background/80 backdrop-blur-sm",
+          "absolute left-2 top-2 z-10 p-1 transition-opacity",
+          "bg-background/80",
           isSelected
             ? "opacity-100"
             : "opacity-0 group-hover:opacity-100",
@@ -156,7 +154,7 @@ function OutputCard({
       {/* Download button */}
       <button
         type="button"
-        className="absolute right-2 top-2 z-10 rounded-md bg-background/80 p-1 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100"
+        className="absolute right-2 top-2 z-10 bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100"
         onClick={(e) => {
           e.stopPropagation();
           onDownload();
@@ -178,7 +176,7 @@ function OutputCard({
           <div className="relative flex items-center justify-center">
             <Video className="h-12 w-12 text-muted-foreground/40" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="rounded-full bg-background/60 p-2">
+              <div className="bg-background/60 p-2">
                 <Eye className="h-5 w-5 text-muted-foreground" />
               </div>
             </div>
@@ -189,20 +187,20 @@ function OutputCard({
       </div>
 
       {/* Info */}
-      <CardContent className="p-3">
+      <div className="p-3">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary">
             {outputTypeLabel(output.output_type)}
           </Badge>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline">
             {PIPELINE_LABELS[output.pipeline_name] ?? output.pipeline_name}
           </Badge>
         </div>
         <p className="mt-2 truncate text-xs text-muted-foreground">
           {formatDate(output.created_at)}
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -232,7 +230,7 @@ function TextPreview({ output }: { output: Output }) {
       // use raw content
     }
     return (
-      <pre className="max-h-[60vh] overflow-auto rounded-lg bg-muted p-4 text-sm">
+      <pre className="max-h-[60vh] overflow-auto bg-muted p-4 font-mono text-sm">
         {formatted}
       </pre>
     );
@@ -242,7 +240,7 @@ function TextPreview({ output }: { output: Output }) {
     return (
       <iframe
         srcDoc={content}
-        className="h-[60vh] w-full rounded-lg border"
+        className="h-[60vh] w-full border"
         sandbox=""
         title="HTML Preview"
       />
@@ -250,7 +248,7 @@ function TextPreview({ output }: { output: Output }) {
   }
 
   return (
-    <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-4 text-sm">
+    <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap bg-muted p-4 font-mono text-sm">
       {content}
     </pre>
   );
@@ -261,7 +259,7 @@ function PreviewContent({ output }: { output: Output }) {
     return (
       <img
         src={`${API_BASE_URL}/api/outputs/${output.id}/file`}
-        className="max-h-[60vh] w-full rounded-lg object-contain"
+        className="max-h-[60vh] w-full object-contain"
         alt=""
       />
     );
@@ -272,7 +270,7 @@ function PreviewContent({ output }: { output: Output }) {
       <video
         src={`${API_BASE_URL}/api/outputs/${output.id}/file`}
         controls
-        className="max-h-[60vh] w-full rounded-lg"
+        className="max-h-[60vh] w-full"
       />
     );
   }
@@ -389,17 +387,12 @@ export default function GalleryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Gallery</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Browse generated creative assets.
-          </p>
-        </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-page-title">GALLERY</h1>
         {selected.size > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {selected.size} selected
+          <div className="flex items-center gap-3">
+            <span className="text-label text-muted-foreground">
+              {selected.size} SELECTED
             </span>
             <Button size="sm" onClick={downloadBatch}>
               <Download className="mr-1.5 h-4 w-4" />
@@ -410,100 +403,96 @@ export default function GalleryPage() {
       </div>
 
       {/* Filter bar */}
-      <Card>
-        <CardContent className="flex flex-wrap items-end gap-4 p-4">
-          <div className="space-y-1">
-            <Label className="text-xs">Pipeline</Label>
-            <Select
-              value={filters.pipeline_name || "all"}
-              onValueChange={(v) =>
-                setFilters((f) => ({
-                  ...f,
-                  pipeline_name: v === "all" ? "" : v,
-                }))
-              }
-            >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="All Pipelines" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Pipelines</SelectItem>
-                {Object.entries(PIPELINE_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="space-y-1">
+          <Label className="text-label">Pipeline</Label>
+          <Select
+            value={filters.pipeline_name || "all"}
+            onValueChange={(v) =>
+              setFilters((f) => ({
+                ...f,
+                pipeline_name: v === "all" ? "" : v,
+              }))
+            }
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All Pipelines" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Pipelines</SelectItem>
+              {Object.entries(PIPELINE_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="space-y-1">
-            <Label className="text-xs">Output Type</Label>
-            <Select
-              value={filters.output_type || "all"}
-              onValueChange={(v) =>
-                setFilters((f) => ({
-                  ...f,
-                  output_type: v === "all" ? "" : v,
-                }))
-              }
-            >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {(
-                  Object.entries(OUTPUT_TYPE_CONFIG) as [
-                    OutputType,
-                    (typeof OUTPUT_TYPE_CONFIG)[OutputType],
-                  ][]
-                ).map(([key, cfg]) => (
-                  <SelectItem key={key} value={key}>
-                    {cfg.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-1">
+          <Label className="text-label">Output Type</Label>
+          <Select
+            value={filters.output_type || "all"}
+            onValueChange={(v) =>
+              setFilters((f) => ({
+                ...f,
+                output_type: v === "all" ? "" : v,
+              }))
+            }
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {(
+                Object.entries(OUTPUT_TYPE_CONFIG) as [
+                  OutputType,
+                  (typeof OUTPUT_TYPE_CONFIG)[OutputType],
+                ][]
+              ).map(([key, cfg]) => (
+                <SelectItem key={key} value={key}>
+                  {cfg.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="space-y-1">
-            <Label className="text-xs">From</Label>
-            <Input
-              type="date"
-              className="w-[150px]"
-              value={filters.created_after}
-              onChange={(e) =>
-                setFilters((f) => ({ ...f, created_after: e.target.value }))
-              }
-            />
-          </div>
+        <div className="space-y-1">
+          <Label className="text-label">From</Label>
+          <Input
+            type="date"
+            className="w-[150px]"
+            value={filters.created_after}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, created_after: e.target.value }))
+            }
+          />
+        </div>
 
-          <div className="space-y-1">
-            <Label className="text-xs">To</Label>
-            <Input
-              type="date"
-              className="w-[150px]"
-              value={filters.created_before}
-              onChange={(e) =>
-                setFilters((f) => ({ ...f, created_before: e.target.value }))
-              }
-            />
-          </div>
+        <div className="space-y-1">
+          <Label className="text-label">To</Label>
+          <Input
+            type="date"
+            className="w-[150px]"
+            value={filters.created_before}
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, created_before: e.target.value }))
+            }
+          />
+        </div>
 
-          {hasFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="mb-0.5"
-            >
-              <X className="mr-1 h-3 w-3" />
-              Clear
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-label text-muted-foreground hover:text-foreground hover:underline mb-1.5"
+          >
+            CLEAR
+          </button>
+        )}
+      </div>
 
       {/* Results count + select all */}
       <div className="flex items-center justify-between">
@@ -542,7 +531,7 @@ export default function GalleryPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="stagger-children grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {outputs.map((output) => (
             <OutputCard
               key={output.id}
@@ -599,23 +588,29 @@ export default function GalleryPage() {
 
               {/* Metadata panel */}
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold">Details</h3>
+                <h3 className="text-section-header font-display">Details</h3>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Pipeline: </span>
-                    {PIPELINE_LABELS[previewOutput.pipeline_name] ??
-                      previewOutput.pipeline_name}
+                    <span className="text-label text-muted-foreground">Pipeline </span>
+                    <span className="font-mono text-xs">
+                      {PIPELINE_LABELS[previewOutput.pipeline_name] ??
+                        previewOutput.pipeline_name}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Type: </span>
-                    {outputTypeLabel(previewOutput.output_type)}
+                    <span className="text-label text-muted-foreground">Type </span>
+                    <span className="font-mono text-xs">
+                      {outputTypeLabel(previewOutput.output_type)}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Created: </span>
-                    {formatDate(previewOutput.created_at)}
+                    <span className="text-label text-muted-foreground">Created </span>
+                    <span className="font-mono text-xs">
+                      {formatDate(previewOutput.created_at)}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Job: </span>
+                    <span className="text-label text-muted-foreground">Job </span>
                     <span className="font-mono text-xs">
                       {previewOutput.job_id.slice(0, 8)}
                     </span>
@@ -623,10 +618,12 @@ export default function GalleryPage() {
                   {previewOutput.metadata &&
                     Object.entries(previewOutput.metadata).map(([key, val]) => (
                       <div key={key}>
-                        <span className="text-muted-foreground">{key}: </span>
-                        {typeof val === "object"
-                          ? JSON.stringify(val)
-                          : String(val)}
+                        <span className="text-label text-muted-foreground">{key} </span>
+                        <span className="font-mono text-xs">
+                          {typeof val === "object"
+                            ? JSON.stringify(val)
+                            : String(val)}
+                        </span>
                       </div>
                     ))}
                 </div>
