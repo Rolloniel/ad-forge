@@ -426,6 +426,35 @@ async def render_brief(
     with open(md_path, "w") as f:
         f.write(markdown)
 
+    # Create Output records for gallery and file serving
+    from app.models.output import Output
+
+    md_output = Output(
+        job_id=job_id,
+        pipeline_name="briefs",
+        output_type="text",
+        file_path=md_path,
+        metadata_={
+            "campaign_name": brief.get("campaign_name", ""),
+            "objective": brief.get("objective", ""),
+            "format": "markdown",
+        },
+    )
+    session.add(md_output)
+
+    json_output = Output(
+        job_id=job_id,
+        pipeline_name="briefs",
+        output_type="json",
+        file_path=json_path,
+        metadata_={
+            "campaign_name": brief.get("campaign_name", ""),
+            "format": "json",
+        },
+    )
+    session.add(json_output)
+    await session.flush()
+
     return {
         "json_path": json_path,
         "md_path": md_path,

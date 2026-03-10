@@ -575,6 +575,38 @@ async def compose_final_ads(
             indent=2,
         )
 
+    # Create Output records for gallery and file serving
+    from app.models.output import Output
+
+    for ad in composed_ads:
+        ad_output = Output(
+            job_id=job_id,
+            pipeline_name="static_ads",
+            output_type="image",
+            file_path=ad["file_path"],
+            metadata_={
+                "angle": ad["angle"],
+                "variation_index": ad["variation_index"],
+                "dimension": ad["dimension"],
+                "size": ad["size"],
+                "headline": ad["headline"],
+            },
+        )
+        session.add(ad_output)
+
+    manifest_output = Output(
+        job_id=job_id,
+        pipeline_name="static_ads",
+        output_type="json",
+        file_path=manifest_path,
+        metadata_={
+            "format": "manifest",
+            "total_ads": len(composed_ads),
+        },
+    )
+    session.add(manifest_output)
+    await session.flush()
+
     return {
         "total_ads": len(composed_ads),
         "output_dir": output_dir,

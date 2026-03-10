@@ -545,6 +545,44 @@ async def composite(prev_output: dict, config: dict) -> dict[str, Any]:
     manifest_path = output_dir / "manifest.json"
     manifest_path.write_text(json.dumps(composited, indent=2))
 
+    # Create Output records for gallery and file serving
+    session = config.get("_session")
+    if session is not None:
+        from uuid import UUID
+        from app.models.output import Output
+
+        _job_id = UUID(str(job_id))
+
+        for video_entry in composited:
+            video_output = Output(
+                job_id=_job_id,
+                pipeline_name="video_ugc",
+                output_type="video",
+                file_path=video_entry["final_mp4_path"],
+                metadata_={
+                    "angle": video_entry["angle"],
+                    "voice_label": video_entry["voice_label"],
+                    "avatar_label": video_entry.get("avatar_label"),
+                    "video_style": video_entry["video_style"],
+                    "hook": video_entry["hook"],
+                    "cta": video_entry["cta"],
+                },
+            )
+            session.add(video_output)
+
+        manifest_output = Output(
+            job_id=_job_id,
+            pipeline_name="video_ugc",
+            output_type="json",
+            file_path=str(manifest_path),
+            metadata_={
+                "format": "manifest",
+                "total_videos": len(composited),
+            },
+        )
+        session.add(manifest_output)
+        await session.flush()
+
     return {
         "composited_videos": composited,
         "total_final_videos": len(composited),

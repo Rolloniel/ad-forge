@@ -703,6 +703,36 @@ async def render_page(
     with open(definition_path, "w") as f:
         json.dump(page_definition, f, indent=2)
 
+    # Create Output records for gallery and file serving
+    from app.models.output import Output
+
+    for rf in rendered_files:
+        html_output = Output(
+            job_id=job_id,
+            pipeline_name="landing_pages",
+            output_type="html",
+            file_path=rf["path"],
+            metadata_={
+                "variant": rf["variant"],
+                "page_type": strategy.get("page_type", ""),
+                "headline": strategy.get("headline", ""),
+            },
+        )
+        session.add(html_output)
+
+    definition_output = Output(
+        job_id=job_id,
+        pipeline_name="landing_pages",
+        output_type="json",
+        file_path=definition_path,
+        metadata_={
+            "format": "page_definition",
+            "variant_count": len(rendered_files),
+        },
+    )
+    session.add(definition_output)
+    await session.flush()
+
     return {
         "definition_path": definition_path,
         "rendered_files": rendered_files,

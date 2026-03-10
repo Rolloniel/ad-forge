@@ -37,7 +37,9 @@ def register_pipeline(name: str, steps: list[tuple[str, Any]]) -> None:
                 prev_output = prev_outputs[prev_step_name]
             else:
                 prev_output = config
-            return await fn(prev_output, config)
+            # Inject session into config so steps can create Output records
+            config_with_session = {**config, "_session": session, "job_id": str(job_id)}
+            return await fn(prev_output, config_with_session)
 
         return wrapper
 

@@ -354,6 +354,40 @@ async def generate_deployment_payloads(ctx: dict[str, Any]) -> dict[str, Any]:
     tiktok_path = output_dir / "tiktok_payload.json"
     tiktok_path.write_text(json.dumps(tiktok_payload, indent=2))
 
+    # Create Output records for gallery and file serving
+    from app.models.output import Output
+    from uuid import UUID as _UUID
+
+    session = ctx["session"]
+    _job_id = _UUID(ctx["job_id"])
+
+    meta_output = Output(
+        job_id=_job_id,
+        pipeline_name="ad_copy",
+        output_type="json",
+        file_path=str(meta_path),
+        metadata_={
+            "platform": "meta",
+            "total_ads": meta_payload["total_ads"],
+            "format": "deployment_payload",
+        },
+    )
+    session.add(meta_output)
+
+    tiktok_output = Output(
+        job_id=_job_id,
+        pipeline_name="ad_copy",
+        output_type="json",
+        file_path=str(tiktok_path),
+        metadata_={
+            "platform": "tiktok",
+            "total_ads": tiktok_payload["total_ads"],
+            "format": "deployment_payload",
+        },
+    )
+    session.add(tiktok_output)
+    await session.flush()
+
     return {
         "meta_payload": meta_payload,
         "tiktok_payload": tiktok_payload,
@@ -391,6 +425,7 @@ def _adapt_ctx(fn, prev_step_name: str | None = None):
             "brand": config.get("brand", {}),
             "previous_outputs": prev_outputs,
             "output_dir": "outputs",
+            "session": session,
         }
         return await fn(ctx)
 
