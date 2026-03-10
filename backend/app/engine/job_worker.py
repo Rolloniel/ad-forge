@@ -53,13 +53,18 @@ async def execute_job(job: Job, steps: list[JobStep], session: AsyncSession) -> 
             step.completed_at = datetime.now(timezone.utc)
             job.status = JobStatus.failed
             job.completed_at = datetime.now(timezone.utc)
-            await notify_step_event(session, str(job.id), step.step_name, "failed")
+            await notify_step_event(session, str(job.id), "step_failed", step.step_name)
+            await notify_step_event(session, str(job.id), "job_failed")
             await session.commit()
             return
 
         step.status = StepStatus.running
         step.started_at = datetime.now(timezone.utc)
         step.input = config
+        await session.commit()
+
+        # Emit step_started event
+        await notify_step_event(session, str(job.id), "step_started", step.step_name)
         await session.commit()
 
         try:
@@ -75,7 +80,7 @@ async def execute_job(job: Job, steps: list[JobStep], session: AsyncSession) -> 
             prev_outputs[step.step_name] = result
             output_preview = str(result)[:200] if result else None
             await notify_step_event(
-                session, str(job.id), step.step_name, "completed", output_preview
+                session, str(job.id), "step_completed", step.step_name, output_preview
             )
             await session.commit()
         except Exception as exc:
@@ -85,12 +90,14 @@ async def execute_job(job: Job, steps: list[JobStep], session: AsyncSession) -> 
             step.completed_at = datetime.now(timezone.utc)
             job.status = JobStatus.failed
             job.completed_at = datetime.now(timezone.utc)
-            await notify_step_event(session, str(job.id), step.step_name, "failed")
+            await notify_step_event(session, str(job.id), "step_failed", step.step_name)
+            await notify_step_event(session, str(job.id), "job_failed")
             await session.commit()
             return
 
     job.status = JobStatus.completed
     job.completed_at = datetime.now(timezone.utc)
+    await notify_step_event(session, str(job.id), "job_completed")
     await session.commit()
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 
 import asyncpg
 from sqlalchemy import text
@@ -14,15 +15,16 @@ CHANNEL = "job_events"
 async def notify_step_event(
     session: AsyncSession,
     job_id: str,
-    step: str,
-    status: str,
+    event_type: str,
+    step: str | None = None,
     output_preview: str | None = None,
 ) -> None:
     payload = json.dumps({
+        "type": event_type,
         "job_id": job_id,
         "step": step,
-        "status": status,
-        "output_preview": output_preview,
+        "data": {"output_preview": output_preview} if output_preview else None,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     })
     await session.execute(
         text("SELECT pg_notify(:channel, :payload)"),
